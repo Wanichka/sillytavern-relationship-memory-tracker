@@ -604,7 +604,6 @@ function handleChatChanged() {
 }
 
 function init() {
-    alert('Relationship Memory Tracker loaded');
 
     log('Extension loaded.');
 
