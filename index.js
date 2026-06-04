@@ -477,15 +477,17 @@ function renderPanel() {
 }
 
 function createUi() {
-    if (document.querySelector('#rm-tracker-panel') || document.querySelector('#rm-tracker-button')) {
-        return;
-    }
+    // Recreate UI every time to avoid half-created/mobile-hidden elements.
+    document.querySelector('#rm-tracker-panel')?.remove();
+    document.querySelector('#rm-tracker-button')?.remove();
 
     const button = document.createElement('button');
     button.id = 'rm-tracker-button';
     button.type = 'button';
     button.textContent = 'Relationships';
 
+    // Mobile-safe fallback styles.
+    // CSS still handles normal layout, but these inline styles prevent mobile themes from hiding the button.
     button.style.position = 'fixed';
     button.style.left = '12px';
     button.style.right = '12px';
@@ -525,8 +527,9 @@ function createUi() {
         </div>
     `;
 
-    document.documentElement.appendChild(button);
-    document.documentElement.appendChild(panel);
+    const uiRoot = document.body || document.documentElement;
+    uiRoot.appendChild(button);
+    uiRoot.appendChild(panel);
 
     button.addEventListener('click', () => {
         panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
