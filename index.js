@@ -477,43 +477,40 @@ function renderPanel() {
 }
 
 function createUi() {
-    if (document.querySelector('#rm-tracker-panel')) {
+    if (document.querySelector('#rm-tracker-panel') || document.querySelector('#rm-tracker-button')) {
         return;
     }
 
     const button = document.createElement('button');
     button.id = 'rm-tracker-button';
+    button.type = 'button';
     button.textContent = 'Relationships';
 
-    if (window.matchMedia('(max-width: 600px)').matches) {
-        button.style.position = 'fixed';
-        button.style.left = '12px';
-        button.style.right = '12px';
-        button.style.bottom = 'calc(env(safe-area-inset-bottom, 0px) + 12px)';
-        button.style.width = 'auto';
-        button.style.zIndex = '2147483647';
-        button.style.display = 'block';
-        button.style.visibility = 'visible';
-        button.style.opacity = '1';
-        button.style.pointerEvents = 'auto';
-    }
-
-    document.body.appendChild(button);
+    button.style.position = 'fixed';
+    button.style.left = '12px';
+    button.style.right = '12px';
+    button.style.bottom = 'calc(env(safe-area-inset-bottom, 0px) + 12px)';
+    button.style.width = 'auto';
+    button.style.height = '44px';
+    button.style.zIndex = '2147483647';
+    button.style.display = 'block';
+    button.style.visibility = 'visible';
+    button.style.opacity = '1';
+    button.style.pointerEvents = 'auto';
+    button.style.border = 'none';
+    button.style.borderRadius = '12px';
+    button.style.padding = '10px 12px';
+    button.style.background = '#6f6af8';
+    button.style.color = '#ffffff';
+    button.style.cursor = 'pointer';
+    button.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.35)';
+    button.style.fontWeight = '700';
+    button.style.fontSize = '14px';
+    button.style.textAlign = 'center';
 
     const panel = document.createElement('div');
     panel.id = 'rm-tracker-panel';
     panel.style.display = 'none';
-
-    if (window.matchMedia('(max-width: 600px)').matches) {
-        panel.style.position = 'fixed';
-        panel.style.left = '8px';
-        panel.style.right = '8px';
-        panel.style.top = '8px';
-        panel.style.bottom = 'calc(env(safe-area-inset-bottom, 0px) + 58px)';
-        panel.style.width = 'auto';
-        panel.style.height = 'auto';
-        panel.style.zIndex = '2147483646';
-    }
 
     panel.innerHTML = `
         <div id="rm-tracker-header">
@@ -528,7 +525,8 @@ function createUi() {
         </div>
     `;
 
-    document.body.appendChild(panel);
+    document.documentElement.appendChild(button);
+    document.documentElement.appendChild(panel);
 
     button.addEventListener('click', () => {
         panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
