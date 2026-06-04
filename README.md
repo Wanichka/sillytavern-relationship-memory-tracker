@@ -37,7 +37,7 @@ The extension automatically updates saved memory from new model replies and inje
 
 ```text
 <relationship>
-Relationship with Alice = Character Name:
+Relationship with {{user}} = Character Name:
 Trust/Friendship: [50%] - [Status] (Comment)
 Romance/Attraction: [10%] - [Status] (Comment)
 Hostility/Conflict: [0%] - [Status] (Comment)
