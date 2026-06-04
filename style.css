@@ -129,3 +129,40 @@
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
     font-weight: 700;
 }
+
+@media (max-width: 600px) {
+    #rm-tracker-panel {
+        left: 8px;
+        right: 8px;
+        bottom: 72px;
+        width: auto;
+        height: min(520px, calc(100dvh - 105px));
+        max-height: calc(100dvh - 105px);
+        z-index: 99999;
+    }
+
+    #rm-tracker-button {
+        right: 12px;
+        bottom: 24px;
+        z-index: 99999;
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    #rm-tracker-body {
+        height: calc(100% - 100px);
+    }
+
+    .rm-tracker-row {
+        font-size: 11px;
+    }
+
+    .rm-tracker-name {
+        font-size: 13px;
+    }
+
+    #rm-tracker-actions button {
+        font-size: 11px;
+        padding: 7px 4px;
+    }
+}
