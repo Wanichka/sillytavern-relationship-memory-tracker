@@ -13,6 +13,7 @@ A small SillyTavern extension that tracks relationship stats from `<relationship
 - Injects saved relationship memory into the prompt
 - Handles special spacing character `ㅤ`
 - Includes a small UI panel with Parse Last, Clear, and Copy buttons
+- Mobile UI is not supported yet. The extension can still run in the background, but the visual panel is intended for desktop use.
 
 ## Installation
 
