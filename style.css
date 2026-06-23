@@ -1,3 +1,28 @@
+/* Relationship Memory Tracker — theme-aware styles.
+   Colors now follow SillyTavern's current theme via its CSS variables.
+   Every variable has a fallback to the original color, so if a theme
+   variable is ever missing/renamed, the panel degrades gracefully
+   instead of breaking. CSS-only change; no JS behavior is affected. */
+
+/* Local helper variables, scoped ONLY to our two elements
+   (never touch :root — that would affect all of SillyTavern). */
+#rm-tracker-panel,
+#rm-tracker-button {
+    --rm-bg: var(--SmartThemeBlurTintColor, rgba(24, 24, 28, 0.96));
+    --rm-text: var(--SmartThemeBodyColor, #f2f2f2);
+    --rm-accent: var(--SmartThemeQuoteColor, #6f6af8);
+    --rm-shadow: var(--SmartThemeShadowColor, rgba(0, 0, 0, 0.45));
+
+    /* Border tinted by text color → light on dark themes, dark on light themes. */
+    --rm-border: color-mix(in srgb, var(--rm-text) 22%, transparent);
+
+    /* Subtle raised surfaces (header, cards, buttons) that adapt to any theme. */
+    --rm-layer-1: color-mix(in srgb, var(--rm-bg), var(--rm-text) 7%);
+    --rm-layer-2: color-mix(in srgb, var(--rm-bg), var(--rm-text) 13%);
+
+    font-family: var(--mainFontFamily, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+}
+
 #rm-tracker-panel {
     position: fixed;
     right: 18px;
@@ -5,131 +30,116 @@
     width: 340px;
     height: min(560px, calc(100vh - 130px));
     z-index: 9999;
-
     overflow: hidden;
-
-    background: rgba(24, 24, 28, 0.96);
-    color: #f2f2f2;
-    border: 1px solid rgba(170, 170, 190, 0.35);
+    background: var(--rm-bg);
+    color: var(--rm-text);
+    border: 1px solid var(--rm-border);
     border-radius: 12px;
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    box-shadow: 0 8px 28px var(--rm-shadow);
+    backdrop-filter: blur(calc(var(--SmartThemeBlurStrength, 10) * 1px));
 }
-
 #rm-tracker-header {
     height: 44px;
     box-sizing: border-box;
-
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-
     padding: 10px 12px;
-    background: rgba(255, 255, 255, 0.06);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--rm-layer-1);
+    border-bottom: 1px solid var(--rm-border);
     cursor: move;
 }
-
 #rm-tracker-title {
     font-size: 14px;
     font-weight: 700;
 }
-
 #rm-tracker-close {
     border: none;
     border-radius: 8px;
     padding: 2px 8px;
-    background: rgba(255, 255, 255, 0.12);
-    color: #fff;
+    background: var(--rm-layer-2);
+    color: var(--rm-text);
     cursor: pointer;
 }
-
+#rm-tracker-close:hover {
+    background: color-mix(in srgb, var(--rm-bg), var(--rm-text) 20%);
+}
 #rm-tracker-body {
     height: calc(100% - 100px);
     box-sizing: border-box;
-
     padding: 10px;
     overflow-y: auto;
     overflow-x: hidden;
 }
-
 .rm-tracker-card {
     padding: 10px;
     margin-bottom: 8px;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.07);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--rm-layer-1);
+    border: 1px solid var(--rm-border);
 }
-
 .rm-tracker-name {
     font-weight: 700;
     margin-bottom: 6px;
+    /* Accent the character name with the theme's quote color. */
+    color: var(--rm-accent);
 }
-
 .rm-tracker-row {
     font-size: 12px;
     line-height: 1.45;
     opacity: 0.95;
 }
-
 .rm-tracker-empty {
     font-size: 13px;
     opacity: 0.7;
     padding: 8px;
 }
-
 #rm-tracker-actions {
     height: 56px;
     box-sizing: border-box;
-
     display: flex;
     gap: 8px;
     padding: 10px;
-
-    background: rgba(24, 24, 28, 0.98);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--rm-bg);
+    border-top: 1px solid var(--rm-border);
 }
-
 #rm-tracker-actions button {
     flex: 1;
     min-width: 0;
-
     border: none;
     border-radius: 8px;
     padding: 7px 6px;
-
-    background: rgba(255, 255, 255, 0.12);
-    color: #fff;
+    background: var(--rm-layer-2);
+    color: var(--rm-text);
     cursor: pointer;
-
     font-weight: 700;
     font-size: 12px;
     white-space: nowrap;
 }
-
 #rm-tracker-actions button:hover {
-    background: rgba(255, 255, 255, 0.18);
+    background: color-mix(in srgb, var(--rm-bg), var(--rm-text) 20%);
 }
-
 #rm-tracker-button {
     position: fixed;
     right: 18px;
     bottom: 45px;
     z-index: 9999;
-
     border: none;
     border-radius: 999px;
     padding: 8px 12px;
-
-    background: #6f6af8;
-    color: white;
+    background: var(--rm-accent);
+    /* If your theme uses a pale accent and white text looks washed out,
+       change this to var(--rm-bg) or a fixed dark color. */
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
     cursor: pointer;
-
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 4px 16px var(--rm-shadow);
     font-weight: 700;
 }
-
+#rm-tracker-button:hover {
+    background: color-mix(in srgb, var(--rm-accent), var(--rm-text) 12%);
+}
 /* Mobile layout */
 @media (max-width: 600px) {
     #rm-tracker-button {
@@ -139,19 +149,15 @@
         bottom: calc(env(safe-area-inset-bottom, 0px) + 12px) !important;
         width: auto !important;
         z-index: 2147483647 !important;
-
         display: block !important;
         visibility: visible !important;
         opacity: 1 !important;
-
         padding: 10px 12px !important;
         border-radius: 12px !important;
         font-size: 14px !important;
         text-align: center !important;
-
         pointer-events: auto !important;
     }
-
     #rm-tracker-panel {
         position: fixed !important;
         left: 8px !important;
@@ -163,21 +169,17 @@
         max-height: none !important;
         z-index: 2147483646 !important;
     }
-
     #rm-tracker-body {
         height: calc(100% - 100px) !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
     }
-
     .rm-tracker-row {
         font-size: 11px;
     }
-
     .rm-tracker-name {
         font-size: 13px;
     }
-
     #rm-tracker-actions button {
         font-size: 11px;
         padding: 7px 4px;
