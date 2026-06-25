@@ -1,8 +1,8 @@
 /* Relationship Memory Tracker — theme-aware styles.
-   Colors now follow SillyTavern's current theme via its CSS variables.
-   Every variable has a fallback to the original color, so if a theme
-   variable is ever missing/renamed, the panel degrades gracefully
-   instead of breaking. CSS-only change; no JS behavior is affected. */
+   Colors follow SillyTavern's current theme via its CSS variables,
+   each with a fallback to the original color so the panel degrades
+   gracefully if a theme variable is ever missing/renamed.
+   This version adds per-card delete buttons. CSS-only visuals. */
 
 /* Local helper variables, scoped ONLY to our two elements
    (never touch :root — that would affect all of SillyTavern). */
@@ -12,6 +12,7 @@
     --rm-text: var(--SmartThemeBodyColor, #f2f2f2);
     --rm-accent: var(--SmartThemeQuoteColor, #6f6af8);
     --rm-shadow: var(--SmartThemeShadowColor, rgba(0, 0, 0, 0.45));
+    --rm-danger: var(--crimson, #b3413a);
 
     /* Border tinted by text color → light on dark themes, dark on light themes. */
     --rm-border: color-mix(in srgb, var(--rm-text) 22%, transparent);
@@ -79,11 +80,37 @@
     background: var(--rm-layer-1);
     border: 1px solid var(--rm-border);
 }
+.rm-tracker-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+}
 .rm-tracker-name {
     font-weight: 700;
-    margin-bottom: 6px;
     /* Accent the character name with the theme's quote color. */
     color: var(--rm-accent);
+}
+.rm-tracker-delete {
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    line-height: 1;
+    border: none;
+    border-radius: 6px;
+    background: var(--rm-layer-2);
+    color: var(--rm-text);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    opacity: 0.65;
+    transition: background 0.12s ease, opacity 0.12s ease;
+}
+.rm-tracker-delete:hover {
+    opacity: 1;
+    background: color-mix(in srgb, var(--rm-bg), var(--rm-danger) 55%);
 }
 .rm-tracker-row {
     font-size: 12px;
@@ -179,6 +206,11 @@
     }
     .rm-tracker-name {
         font-size: 13px;
+    }
+    .rm-tracker-delete {
+        width: 26px;
+        height: 26px;
+        font-size: 16px;
     }
     #rm-tracker-actions button {
         font-size: 11px;
