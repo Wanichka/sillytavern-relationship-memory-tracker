@@ -1,10 +1,11 @@
-// Relationship Memory Tracker v0.9
+// Relationship Memory Tracker v1.1
 // Full replacement file.
-// Prompt injection now treats percentages as authoritative,
+// Adds per-character delete buttons in the panel (deletable memories).
+// Prompt injection treats percentages as authoritative,
 // but statuses, comments, and Current Dynamic as flexible reference notes.
 // Universal parser: no hardcoded user names, no hardcoded character names.
 // Handles special spacing character "ㅤ".
-// Memory is now stored per chat (keyed by current chat id), with a
+// Memory is stored per chat (keyed by current chat id), with a
 // fallback to the old global key when no chat id is available.
 
 import {
@@ -447,6 +448,27 @@ function updatePromptInjection() {
     log('Prompt injection updated.');
 }
 
+function deleteCharacter(name) {
+    if (name == null) return;
+
+    const confirmed = confirm(`Delete relationship memory for "${name}"?`);
+    if (!confirmed) return;
+
+    const memory = getMemory();
+
+    if (!(name in memory)) {
+        log('Tried to delete a character that is not in memory:', name);
+        return;
+    }
+
+    delete memory[name];
+    saveMemory(memory);
+    renderPanel();
+    updatePromptInjection();
+
+    log('Deleted character:', name);
+}
+
 function renderPanel() {
     const memory = getMemory();
     const body = document.querySelector('#rm-tracker-body');
@@ -460,12 +482,15 @@ function renderPanel() {
         return;
     }
 
-    body.innerHTML = names.map((name) => {
+    body.innerHTML = names.map((name, index) => {
         const item = memory[name];
 
         return `
-            <div class="rm-tracker-card">
-                <div class="rm-tracker-name">${escapeHtml(name)}</div>
+            <div class="rm-tracker-card" data-rm-index="${index}">
+                <div class="rm-tracker-card-head">
+                    <div class="rm-tracker-name">${escapeHtml(name)}</div>
+                    <button class="rm-tracker-delete" type="button" data-rm-index="${index}" title="Delete this memory" aria-label="Delete this memory">×</button>
+                </div>
                 <div class="rm-tracker-row">Trust/Friendship: ${escapeHtml(item.trust || '0%')} - ${escapeHtml(item.trustStatus || 'Unknown')}</div>
                 <div class="rm-tracker-row">Romance/Attraction: ${escapeHtml(item.romance || '0%')} - ${escapeHtml(item.romanceStatus || 'Unknown')}</div>
                 <div class="rm-tracker-row">Hostility/Conflict: ${escapeHtml(item.hostility || '0%')} - ${escapeHtml(item.hostilityStatus || 'Unknown')}</div>
@@ -474,6 +499,16 @@ function renderPanel() {
             </div>
         `;
     }).join('');
+
+    // Wire up the per-card delete buttons. Names are looked up by index to
+    // avoid any escaping issues with special characters in character names.
+    body.querySelectorAll('.rm-tracker-delete').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const idx = Number(btn.getAttribute('data-rm-index'));
+            const name = names[idx];
+            deleteCharacter(name);
+        });
+    });
 }
 
 function createUi() {
