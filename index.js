@@ -1,5 +1,6 @@
-// Relationship Memory Tracker v1.2
+// Relationship Memory Tracker v1.3
 // Full replacement file.
+// Adds a Jealousy/Possessiveness axis alongside Trust, Romance and Hostility.
 // Adds per-character delete buttons in the panel (deletable memories).
 // Fixes parseAxis: the trailing "(comment)" on each axis line is now optional,
 // so lines like "Trust/Friendship: [79%] - Глубокое Доверие" (no parenthetical)
@@ -164,6 +165,7 @@ function parseCharacterBlock(name, block) {
     const trust = parseAxis(block, 'Trust/Friendship');
     const romance = parseAxis(block, 'Romance/Attraction');
     const hostility = parseAxis(block, 'Hostility/Conflict');
+    const jealousy = parseAxis(block, 'Jealousy/Possessiveness');
 
     if (!trust) {
         return null;
@@ -182,6 +184,9 @@ function parseCharacterBlock(name, block) {
         hostility: hostility?.value || '0%',
         hostilityStatus: hostility?.status || 'Unknown',
         hostilityComment: hostility?.comment || 'No hostility comment parsed.',
+        jealousy: jealousy?.value || '0%',
+        jealousyStatus: jealousy?.status || 'Unknown',
+        jealousyComment: jealousy?.comment || 'No jealousy comment parsed.',
         dynamic: dynamicMatch ? dynamicMatch[1].trim() : 'No current dynamic parsed.',
         status: 'present',
         lastUpdated: new Date().toISOString()
@@ -416,6 +421,7 @@ function buildMemoryText() {
         lines.push(`Trust/Friendship: ${item.trust || '0%'} - ${item.trustStatus || 'Unknown'} (${item.trustComment || 'No comment.'})`);
         lines.push(`Romance/Attraction: ${item.romance || '0%'} - ${item.romanceStatus || 'Unknown'} (${item.romanceComment || 'No comment.'})`);
         lines.push(`Hostility/Conflict: ${item.hostility || '0%'} - ${item.hostilityStatus || 'Unknown'} (${item.hostilityComment || 'No comment.'})`);
+        lines.push(`Jealousy/Possessiveness: ${item.jealousy || '0%'} - ${item.jealousyStatus || 'Unknown'} (${item.jealousyComment || 'No comment.'})`);
         lines.push(`Current Dynamic: ${item.dynamic || 'No current dynamic saved.'}`);
         lines.push(`Status: ${item.status || 'saved'}.`);
         lines.push('');
@@ -501,6 +507,7 @@ function renderPanel() {
                 <div class="rm-tracker-row">Trust/Friendship: ${escapeHtml(item.trust || '0%')} - ${escapeHtml(item.trustStatus || 'Unknown')}</div>
                 <div class="rm-tracker-row">Romance/Attraction: ${escapeHtml(item.romance || '0%')} - ${escapeHtml(item.romanceStatus || 'Unknown')}</div>
                 <div class="rm-tracker-row">Hostility/Conflict: ${escapeHtml(item.hostility || '0%')} - ${escapeHtml(item.hostilityStatus || 'Unknown')}</div>
+                <div class="rm-tracker-row">Jealousy/Possessiveness: ${escapeHtml(item.jealousy || '0%')} - ${escapeHtml(item.jealousyStatus || 'Unknown')}</div>
                 <div class="rm-tracker-row">Dynamic: ${escapeHtml(item.dynamic || 'No dynamic saved.')}</div>
                 <div class="rm-tracker-row">Status: ${escapeHtml(item.status || 'saved')}</div>
             </div>
