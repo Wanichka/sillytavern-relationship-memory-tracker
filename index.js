@@ -1,6 +1,9 @@
-// Relationship Memory Tracker v1.1
+// Relationship Memory Tracker v1.2
 // Full replacement file.
 // Adds per-character delete buttons in the panel (deletable memories).
+// Fixes parseAxis: the trailing "(comment)" on each axis line is now optional,
+// so lines like "Trust/Friendship: [79%] - Глубокое Доверие" (no parenthetical)
+// parse correctly instead of dropping the whole character.
 // Prompt injection treats percentages as authoritative,
 // but statuses, comments, and Current Dynamic as flexible reference notes.
 // Universal parser: no hardcoded user names, no hardcoded character names.
@@ -137,8 +140,12 @@ function removeRelationshipPrefix(text) {
 function parseAxis(text, axisName) {
     const escapedAxis = axisName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+    // Trailing "(comment)" is OPTIONAL. If it were required, an axis line
+    // without a parenthetical (e.g. "79% - Глубокое Доверие") would fail to
+    // match, and since Trust is the required axis the whole character would be
+    // dropped ("no characters were parsed").
     const regex = new RegExp(
-        `${escapedAxis}:\\s*\\[?(\\d{1,3})%\\]?\\s*-\\s*\\[?([^\\]\\n\\(]+)\\]?\\s*\\(([^\\)]*)\\)`,
+        `${escapedAxis}:\\s*\\[?(\\d{1,3})%\\]?\\s*-\\s*\\[?([^\\]\\n\\(]+)\\]?(?:\\s*\\(([^\\)]*)\\))?`,
         'i'
     );
 
@@ -149,7 +156,7 @@ function parseAxis(text, axisName) {
     return {
         value: `${Math.min(Number(match[1]), 100)}%`,
         status: match[2].trim(),
-        comment: match[3].trim()
+        comment: (match[3] || '').trim()
     };
 }
 
