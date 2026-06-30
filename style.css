@@ -11,7 +11,7 @@
     --rm-bg: var(--SmartThemeBlurTintColor, rgba(24, 24, 28, 0.96));
     --rm-text: var(--SmartThemeBodyColor, #f2f2f2);
     --rm-accent: var(--SmartThemeQuoteColor, #6f6af8);
-    --rm-shadow: var(--SmartThemeShadowColor, rgba(0, 0, 0, 0.45));
+    --rm-shadow: rgba(0, 0, 0, 0.45);
     --rm-danger: var(--crimson, #b3413a);
 
     /* Border tinted by text color → light on dark themes, dark on light themes. */
@@ -36,7 +36,6 @@
     color: var(--rm-text);
     border: 1px solid var(--rm-border);
     border-radius: 12px;
-    box-shadow: 0 8px 28px var(--rm-shadow);
     backdrop-filter: blur(calc(var(--SmartThemeBlurStrength, 10) * 1px));
 }
 #rm-tracker-header {
@@ -161,7 +160,6 @@
     color: #fff;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
     cursor: pointer;
-    box-shadow: 0 4px 16px var(--rm-shadow);
     font-weight: 700;
 }
 #rm-tracker-button:hover {
