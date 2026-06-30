@@ -1,5 +1,6 @@
-// Relationship Memory Tracker v1.3
+// Relationship Memory Tracker v1.4
 // Full replacement file.
+// Adds a draggable panel (drag by its header; the button stays fixed).
 // Adds a Jealousy/Possessiveness axis alongside Trust, Romance and Hostility.
 // Adds per-character delete buttons in the panel (deletable memories).
 // Fixes parseAxis: the trailing "(comment)" on each axis line is now optional,
@@ -525,6 +526,88 @@ function renderPanel() {
     });
 }
 
+/* ------------------------------- draggable UI ------------------------------- */
+
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+}
+
+function applyPosition(el, left, top) {
+    // Inline !important beats the fixed-position rules (and the mobile media
+    // query) in style.css, so a dragged element actually moves.
+    el.style.setProperty('left', `${left}px`, 'important');
+    el.style.setProperty('top', `${top}px`, 'important');
+    el.style.setProperty('right', 'auto', 'important');
+    el.style.setProperty('bottom', 'auto', 'important');
+}
+
+function restorePosition(el, storageKey) {
+    try {
+        const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
+        if (saved && Number.isFinite(saved.left) && Number.isFinite(saved.top)) {
+            const left = clamp(saved.left, 0, Math.max(0, window.innerWidth - 48));
+            const top = clamp(saved.top, 0, Math.max(0, window.innerHeight - 48));
+            applyPosition(el, left, top);
+        }
+    } catch (error) {
+        console.error('[Relationship Memory Tracker] Failed to restore position:', error);
+    }
+}
+
+// Drag `el` by `handle`; remembers position. Inner <button>s in the handle
+// (e.g. the close button) keep working.
+function makeDraggable(el, { storageKey, handle = el } = {}) {
+    restorePosition(el, storageKey);
+    handle.style.touchAction = 'none';
+
+    let dragging = false;
+    let moved = false;
+    let startX = 0;
+    let startY = 0;
+    let baseLeft = 0;
+    let baseTop = 0;
+
+    handle.addEventListener('pointerdown', (event) => {
+        const innerButton = event.target.closest('button');
+        if (innerButton && innerButton !== el) return;
+        if (event.button != null && event.button !== 0) return;
+
+        dragging = true;
+        moved = false;
+        const rect = el.getBoundingClientRect();
+        baseLeft = rect.left;
+        baseTop = rect.top;
+        startX = event.clientX;
+        startY = event.clientY;
+        try { handle.setPointerCapture(event.pointerId); } catch (e) { /* ignore */ }
+    });
+
+    handle.addEventListener('pointermove', (event) => {
+        if (!dragging) return;
+        const dx = event.clientX - startX;
+        const dy = event.clientY - startY;
+        if (!moved && Math.hypot(dx, dy) < 5) return;
+        moved = true;
+        const left = clamp(baseLeft + dx, 0, window.innerWidth - el.offsetWidth);
+        const top = clamp(baseTop + dy, 0, window.innerHeight - el.offsetHeight);
+        applyPosition(el, left, top);
+    });
+
+    function finish(event) {
+        if (!dragging) return;
+        dragging = false;
+        try { handle.releasePointerCapture(event.pointerId); } catch (e) { /* ignore */ }
+        if (moved) {
+            const rect = el.getBoundingClientRect();
+            try {
+                localStorage.setItem(storageKey, JSON.stringify({ left: rect.left, top: rect.top }));
+            } catch (e) { /* ignore */ }
+        }
+    }
+    handle.addEventListener('pointerup', finish);
+    handle.addEventListener('pointercancel', finish);
+}
+
 function createUi() {
     if (document.querySelector('#rm-tracker-panel')) {
         return;
@@ -553,6 +636,11 @@ function createUi() {
     `;
 
     document.body.appendChild(panel);
+
+    makeDraggable(panel, {
+        storageKey: 'rm_tracker_panel_pos',
+        handle: panel.querySelector('#rm-tracker-header'),
+    });
 
     button.addEventListener('click', () => {
         panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
