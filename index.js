@@ -197,7 +197,16 @@ function parseCharacterBlock(name, block) {
 }
 
 function parseRelationshipBlock(block) {
-    const normalized = removeRelationshipPrefix(normalizeText(block));
+    let normalized = removeRelationshipPrefix(normalizeText(block));
+
+    // Gemini sometimes glues the next character's name to the end of the
+    // previous "Current Dynamic" line: "...business here.; Ikkaku:\nTrust/Friendship:".
+    // Move such names onto their own line so the header regex can find them,
+    // and so the previous character's Current Dynamic is not polluted.
+    normalized = normalized.replace(
+        /;\s*([^\n:;]+):\s*(?=\n\s*Trust\/Friendship:)/gi,
+        '\n$1:'
+    );
 
     log('Relationship block to parse:', normalized);
 
