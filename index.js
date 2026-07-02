@@ -1,6 +1,7 @@
-// Relationship Memory Tracker v1.4
+// Relationship Memory Tracker v1.5
 // Full replacement file.
-// Adds a draggable panel (drag by its header; the button stays fixed).
+// Draggable panel, now bounded to the viewport with a top margin so the header
+// can't be lost under a browser toolbar (tablet fix).
 // Adds a Jealousy/Possessiveness axis alongside Trust, Romance and Hostility.
 // Adds per-character delete buttons in the panel (deletable memories).
 // Fixes parseAxis: the trailing "(comment)" on each axis line is now optional,
@@ -532,6 +533,22 @@ function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
 }
 
+// Keep a dragged element on-screen. The top margin ensures the draggable
+// header can never hide under a floating browser toolbar (tablet/mobile).
+const DRAG_EDGE = 8;
+const DRAG_TOP_MARGIN = 50;
+
+function clampToViewport(el, left, top) {
+    const w = el.offsetWidth || 0;
+    const h = el.offsetHeight || 0;
+    const maxLeft = Math.max(DRAG_EDGE, window.innerWidth - w - DRAG_EDGE);
+    const maxTop = Math.max(DRAG_TOP_MARGIN, window.innerHeight - h - DRAG_EDGE);
+    return {
+        left: clamp(left, DRAG_EDGE, maxLeft),
+        top: clamp(top, DRAG_TOP_MARGIN, maxTop),
+    };
+}
+
 function applyPosition(el, left, top) {
     // Inline !important beats the fixed-position rules (and the mobile media
     // query) in style.css, so a dragged element actually moves.
@@ -545,9 +562,8 @@ function restorePosition(el, storageKey) {
     try {
         const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
         if (saved && Number.isFinite(saved.left) && Number.isFinite(saved.top)) {
-            const left = clamp(saved.left, 0, Math.max(0, window.innerWidth - 48));
-            const top = clamp(saved.top, 0, Math.max(0, window.innerHeight - 48));
-            applyPosition(el, left, top);
+            const p = clampToViewport(el, saved.left, saved.top);
+            applyPosition(el, p.left, p.top);
         }
     } catch (error) {
         console.error('[Relationship Memory Tracker] Failed to restore position:', error);
@@ -588,9 +604,8 @@ function makeDraggable(el, { storageKey, handle = el } = {}) {
         const dy = event.clientY - startY;
         if (!moved && Math.hypot(dx, dy) < 5) return;
         moved = true;
-        const left = clamp(baseLeft + dx, 0, window.innerWidth - el.offsetWidth);
-        const top = clamp(baseTop + dy, 0, window.innerHeight - el.offsetHeight);
-        applyPosition(el, left, top);
+        const p = clampToViewport(el, baseLeft + dx, baseTop + dy);
+        applyPosition(el, p.left, p.top);
     });
 
     function finish(event) {
