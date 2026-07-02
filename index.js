@@ -1,9 +1,10 @@
-// Relationship Memory Tracker v1.5
+// Relationship Memory Tracker v1.6
 // Full replacement file.
-// Draggable panel, now bounded to the viewport with a top margin so the header
-// can't be lost under a browser toolbar (tablet fix).
-// Adds a Jealousy/Possessiveness axis alongside Trust, Romance and Hostility.
-// Adds per-character delete buttons in the panel (deletable memories).
+// Injected memory now explicitly separates "remember everyone" from "show only
+// those present": absent characters stay in memory but must be omitted from the
+// visible info blocks. Fixes offscreen characters leaking into infoblocks.
+// Draggable panel bounded to the viewport (tablet-safe).
+// Jealousy/Possessiveness axis; per-character delete buttons.
 // Fixes parseAxis: the trailing "(comment)" on each axis line is now optional,
 // so lines like "Trust/Friendship: [79%] - Глубокое Доверие" (no parenthetical)
 // parse correctly instead of dropping the whole character.
@@ -405,15 +406,18 @@ function buildMemoryText() {
     const lines = [];
 
     lines.push('<relationship_memory>');
-    lines.push('Persistent relationship memory.');
-    lines.push('This block may include offscreen characters.');
+    lines.push('This is a HIDDEN long-term memory store, not a scene roster. It lists ALL known characters, including ones not currently present.');
+    lines.push('CRITICAL: This block is for your reference only. Do NOT treat it as the list of characters to write about.');
+    lines.push('In the visible info blocks (<relationship>, char_mood, char_thoughts, char_outfit, etc.) include ONLY characters who are physically present in the CURRENT scene.');
+    lines.push('A character listed here who is NOT in the current scene must be OMITTED from every info block. Keep their saved memory unchanged; do not output them.');
+    lines.push('The "Status" and "Current Dynamic" fields here describe saved memory, not presence — never use them as a reason to write an absent character into an info block.');
     lines.push('Use saved percentages as the source of truth for returning characters.');
     lines.push('Statuses, comments, and Current Dynamic are reference notes, not fixed labels.');
     lines.push('When a character appears again, keep the saved percentages as the baseline, but update custom statuses, comments, and Current Dynamic to fit the current scene.');
     lines.push('Do not reset returning characters to 0 unless the story clearly justifies it.');
     lines.push('A 0% Romance/Attraction value means no active romantic progress yet, not a permanent ban, unless lore says romance is impossible.');
     lines.push('If a Romance Start moment happens, Romance/Attraction may begin from the saved value according to <relationship_progression>.');
-    lines.push('If a character is offscreen, keep their values unchanged unless they appear in the current scene.');
+    lines.push('If a character is offscreen, keep their saved values unchanged and do not write them into any info block until they actually appear in the scene.');
     lines.push('');
 
     for (const name of names) {
