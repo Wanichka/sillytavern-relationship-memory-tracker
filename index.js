@@ -409,7 +409,10 @@ function buildMemoryText() {
     lines.push('This is a HIDDEN long-term memory store, not a scene roster. It lists ALL known characters, including ones not currently present.');
     lines.push('CRITICAL: This block is for your reference only. Do NOT treat it as the list of characters to write about.');
     lines.push('In the visible info blocks (<relationship>, char_mood, char_thoughts, char_outfit, etc.) include ONLY characters who are physically present in the CURRENT scene.');
-    lines.push('A character listed here who is NOT in the current scene must be OMITTED from every info block. Keep their saved memory unchanged; do not output them.');
+    lines.push('A character listed here who is NOT physically present at the END of the current post must be OMITTED from every info block ENTIRELY.');
+    lines.push('Do not list absent characters at all — not even with placeholders like *offscreen*, *absent*, *N/A*, or an empty value. An absent character has NO line in any info block.');
+    lines.push('If a character was in the scene earlier in the post but left before its end, they count as absent.');
+    lines.push('Keep the saved memory of absent characters unchanged; simply do not output them.');
     lines.push('The "Status" and "Current Dynamic" fields here describe saved memory, not presence — never use them as a reason to write an absent character into an info block.');
     lines.push('Use saved percentages as the source of truth for returning characters.');
     lines.push('Statuses, comments, and Current Dynamic are reference notes, not fixed labels.');
@@ -417,7 +420,6 @@ function buildMemoryText() {
     lines.push('Do not reset returning characters to 0 unless the story clearly justifies it.');
     lines.push('A 0% Romance/Attraction value means no active romantic progress yet, not a permanent ban, unless lore says romance is impossible.');
     lines.push('If a Romance Start moment happens, Romance/Attraction may begin from the saved value according to <relationship_progression>.');
-    lines.push('If a character is offscreen, keep their saved values unchanged and do not write them into any info block until they actually appear in the scene.');
     lines.push('');
 
     for (const name of names) {
