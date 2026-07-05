@@ -1,13 +1,26 @@
-// Relationship Memory Tracker v1.6
+// Relationship Memory Tracker v2.0
 // Full replacement file.
-// Injected memory now explicitly separates "remember everyone" from "show only
+// v2.0: Romance/Attraction is split into two independent axes:
+//   Love/Affection  — emotional attachment: being in love, tenderness, longing,
+//                     the need for this specific person's closeness.
+//   Desire/Attraction — physical pull: desire, tension, reaction to body/voice/touch.
+// Old saved memory migrates automatically on first read per chat:
+//   romance -> love (values, status, comment preserved),
+//   desire  -> "Not yet assessed" until the character next appears in a scene.
+// Parser accepts BOTH formats during transition: if a post still uses the old
+// "Romance/Attraction" line, it is read as Love/Affection.
+// Behavior change: an axis missing from a post no longer resets to 0% —
+// the previously saved value is kept (only axes actually present overwrite).
+// v1.7.1: parser handles "; Name:" glued to the end of the previous
+// Current Dynamic line.
+// v1.7: hardened absence rule — bans placeholder lines (*offscreen* etc.),
+// presence measured at END of post.
+// Injected memory explicitly separates "remember everyone" from "show only
 // those present": absent characters stay in memory but must be omitted from the
-// visible info blocks. Fixes offscreen characters leaking into infoblocks.
+// visible info blocks.
 // Draggable panel bounded to the viewport (tablet-safe).
 // Jealousy/Possessiveness axis; per-character delete buttons.
-// Fixes parseAxis: the trailing "(comment)" on each axis line is now optional,
-// so lines like "Trust/Friendship: [79%] - Глубокое Доверие" (no parenthetical)
-// parse correctly instead of dropping the whole character.
+// parseAxis: the trailing "(comment)" on each axis line is optional.
 // Prompt injection treats percentages as authoritative,
 // but statuses, comments, and Current Dynamic as flexible reference notes.
 // Universal parser: no hardcoded user names, no hardcoded character names.
@@ -55,11 +68,53 @@ function getStorageKey() {
     return `${STORAGE_KEY}::${chatId}`;
 }
 
+// One-time per-chat migration from the single Romance/Attraction axis to the
+// Love/Affection + Desire/Attraction split. Runs on every read, but only
+// converts records that still carry the old "romance" field, so after the
+// first pass it is a no-op.
+function migrateMemory(memory) {
+    let changed = false;
+
+    for (const name of Object.keys(memory)) {
+        const item = memory[name];
+
+        if (!item || typeof item !== 'object') continue;
+
+        if (item.love === undefined && item.romance !== undefined) {
+            item.love = item.romance;
+            item.loveStatus = item.romanceStatus;
+            item.loveComment = item.romanceComment;
+
+            // Desire starts unknown; the first parse after the character
+            // appears in a scene will fill it with a real value.
+            item.desire = '0%';
+            item.desireStatus = 'Not yet assessed';
+            item.desireComment = 'Migrated from single Romance axis; desire not measured yet.';
+
+            delete item.romance;
+            delete item.romanceStatus;
+            delete item.romanceComment;
+
+            changed = true;
+        }
+    }
+
+    return changed;
+}
+
 function getMemory() {
     try {
         const raw = localStorage.getItem(getStorageKey());
         if (!raw) return {};
-        return JSON.parse(raw);
+
+        const memory = JSON.parse(raw);
+
+        if (migrateMemory(memory)) {
+            saveMemory(memory);
+            log('Memory migrated to Love/Desire format.');
+        }
+
+        return memory;
     } catch (error) {
         console.error('[Relationship Memory Tracker] Failed to read memory:', error);
         return {};
@@ -145,9 +200,9 @@ function parseAxis(text, axisName) {
     const escapedAxis = axisName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
     // Trailing "(comment)" is OPTIONAL. If it were required, an axis line
-    // without a parenthetical (e.g. "79% - Глубокое Доверие") would fail to
-    // match, and since Trust is the required axis the whole character would be
-    // dropped ("no characters were parsed").
+    // without a parenthetical (e.g. "79% - Глубокое Доверие" or the new
+    // single-sentence Internal Feeling format) would fail to match, and since
+    // Trust is the required axis the whole character would be dropped.
     const regex = new RegExp(
         `${escapedAxis}:\\s*\\[?(\\d{1,3})%\\]?\\s*-\\s*\\[?([^\\]\\n\\(]+)\\]?(?:\\s*\\(([^\\)]*)\\))?`,
         'i'
@@ -166,34 +221,58 @@ function parseAxis(text, axisName) {
 
 function parseCharacterBlock(name, block) {
     const trust = parseAxis(block, 'Trust/Friendship');
-    const romance = parseAxis(block, 'Romance/Attraction');
-    const hostility = parseAxis(block, 'Hostility/Conflict');
-    const jealousy = parseAxis(block, 'Jealousy/Possessiveness');
 
     if (!trust) {
         return null;
     }
 
+    // New split axes. During the transition Gemini may still emit the old
+    // "Romance/Attraction" line — read it as Love/Affection so no data is lost.
+    const love = parseAxis(block, 'Love/Affection') || parseAxis(block, 'Romance/Attraction');
+    const desire = parseAxis(block, 'Desire/Attraction');
+    const hostility = parseAxis(block, 'Hostility/Conflict');
+    const jealousy = parseAxis(block, 'Jealousy/Possessiveness');
+
     const dynamicMatch = block.match(/Current\s+Dynamic:\s*([^\n]+)/i);
 
-    return {
+    const parsed = {
         name: name.trim(),
-        trust: trust?.value || '0%',
-        trustStatus: trust?.status || 'Unknown',
-        trustComment: trust?.comment || 'No trust comment parsed.',
-        romance: romance?.value || '0%',
-        romanceStatus: romance?.status || 'Unknown',
-        romanceComment: romance?.comment || 'No romance comment parsed.',
-        hostility: hostility?.value || '0%',
-        hostilityStatus: hostility?.status || 'Unknown',
-        hostilityComment: hostility?.comment || 'No hostility comment parsed.',
-        jealousy: jealousy?.value || '0%',
-        jealousyStatus: jealousy?.status || 'Unknown',
-        jealousyComment: jealousy?.comment || 'No jealousy comment parsed.',
+        trust: trust.value,
+        trustStatus: trust.status,
+        trustComment: trust.comment,
         dynamic: dynamicMatch ? dynamicMatch[1].trim() : 'No current dynamic parsed.',
         status: 'present',
         lastUpdated: new Date().toISOString()
     };
+
+    // Only include axes that were actually present in this post. Missing axes
+    // are simply not overwritten, so the previously saved value survives the
+    // spread in updateMemoryFromText instead of being reset to 0%.
+    if (love) {
+        parsed.love = love.value;
+        parsed.loveStatus = love.status;
+        parsed.loveComment = love.comment;
+    }
+
+    if (desire) {
+        parsed.desire = desire.value;
+        parsed.desireStatus = desire.status;
+        parsed.desireComment = desire.comment;
+    }
+
+    if (hostility) {
+        parsed.hostility = hostility.value;
+        parsed.hostilityStatus = hostility.status;
+        parsed.hostilityComment = hostility.comment;
+    }
+
+    if (jealousy) {
+        parsed.jealousy = jealousy.value;
+        parsed.jealousyStatus = jealousy.status;
+        parsed.jealousyComment = jealousy.comment;
+    }
+
+    return parsed;
 }
 
 function parseRelationshipBlock(block) {
@@ -404,6 +483,14 @@ function parseLastMessageManually() {
     }
 }
 
+// Axis line for the injection. With the Internal Feeling format the whole
+// sentence lives in the "status" slot and the parenthetical comment is often
+// absent — omit empty "()" instead of printing "(No comment.)".
+function formatAxisLine(label, value, status, comment) {
+    const line = `${label}: ${value || '0%'} - ${status || 'Unknown'}`;
+    return comment ? `${line} (${comment})` : line;
+}
+
 function buildMemoryText() {
     const memory = getMemory();
     const names = Object.keys(memory);
@@ -425,20 +512,23 @@ function buildMemoryText() {
     lines.push('The "Status" and "Current Dynamic" fields here describe saved memory, not presence — never use them as a reason to write an absent character into an info block.');
     lines.push('Use saved percentages as the source of truth for returning characters.');
     lines.push('Statuses, comments, and Current Dynamic are reference notes, not fixed labels.');
-    lines.push('When a character appears again, keep the saved percentages as the baseline, but update custom statuses, comments, and Current Dynamic to fit the current scene.');
+    lines.push('When a character appears again, keep the saved percentages as the baseline, but update the feeling descriptions and Current Dynamic to fit the current scene.');
     lines.push('Do not reset returning characters to 0 unless the story clearly justifies it.');
-    lines.push('A 0% Romance/Attraction value means no active romantic progress yet, not a permanent ban, unless lore says romance is impossible.');
-    lines.push('If a Romance Start moment happens, Romance/Attraction may begin from the saved value according to <relationship_progression>.');
+    lines.push('Love/Affection and Desire/Attraction are INDEPENDENT axes: Love is emotional attachment (being in love, tenderness, longing for this person); Desire is physical pull (attraction, tension, wanting). One can be high while the other is low.');
+    lines.push('A 0% Love/Affection value means no active romantic progress yet, not a permanent ban, unless lore says romance is impossible.');
+    lines.push('If a Romance Start moment happens, Love/Affection may begin from the saved value according to <relationship_progression>.');
+    lines.push('A Desire/Attraction value marked "Not yet assessed" was never measured: when that character next appears, evaluate it fresh from their personality, history, and the saved Love/Affection — do not treat it as a confirmed zero.');
     lines.push('');
 
     for (const name of names) {
         const item = memory[name];
 
         lines.push(`${name}:`);
-        lines.push(`Trust/Friendship: ${item.trust || '0%'} - ${item.trustStatus || 'Unknown'} (${item.trustComment || 'No comment.'})`);
-        lines.push(`Romance/Attraction: ${item.romance || '0%'} - ${item.romanceStatus || 'Unknown'} (${item.romanceComment || 'No comment.'})`);
-        lines.push(`Hostility/Conflict: ${item.hostility || '0%'} - ${item.hostilityStatus || 'Unknown'} (${item.hostilityComment || 'No comment.'})`);
-        lines.push(`Jealousy/Possessiveness: ${item.jealousy || '0%'} - ${item.jealousyStatus || 'Unknown'} (${item.jealousyComment || 'No comment.'})`);
+        lines.push(formatAxisLine('Trust/Friendship', item.trust, item.trustStatus, item.trustComment));
+        lines.push(formatAxisLine('Love/Affection', item.love, item.loveStatus, item.loveComment));
+        lines.push(formatAxisLine('Desire/Attraction', item.desire, item.desireStatus, item.desireComment));
+        lines.push(formatAxisLine('Hostility/Conflict', item.hostility, item.hostilityStatus, item.hostilityComment));
+        lines.push(formatAxisLine('Jealousy/Possessiveness', item.jealousy, item.jealousyStatus, item.jealousyComment));
         lines.push(`Current Dynamic: ${item.dynamic || 'No current dynamic saved.'}`);
         lines.push(`Status: ${item.status || 'saved'}.`);
         lines.push('');
@@ -522,7 +612,8 @@ function renderPanel() {
                     <button class="rm-tracker-delete" type="button" data-rm-index="${index}" title="Delete this memory" aria-label="Delete this memory">×</button>
                 </div>
                 <div class="rm-tracker-row">Trust/Friendship: ${escapeHtml(item.trust || '0%')} - ${escapeHtml(item.trustStatus || 'Unknown')}</div>
-                <div class="rm-tracker-row">Romance/Attraction: ${escapeHtml(item.romance || '0%')} - ${escapeHtml(item.romanceStatus || 'Unknown')}</div>
+                <div class="rm-tracker-row">Love/Affection: ${escapeHtml(item.love || '0%')} - ${escapeHtml(item.loveStatus || 'Unknown')}</div>
+                <div class="rm-tracker-row">Desire/Attraction: ${escapeHtml(item.desire || '0%')} - ${escapeHtml(item.desireStatus || 'Unknown')}</div>
                 <div class="rm-tracker-row">Hostility/Conflict: ${escapeHtml(item.hostility || '0%')} - ${escapeHtml(item.hostilityStatus || 'Unknown')}</div>
                 <div class="rm-tracker-row">Jealousy/Possessiveness: ${escapeHtml(item.jealousy || '0%')} - ${escapeHtml(item.jealousyStatus || 'Unknown')}</div>
                 <div class="rm-tracker-row">Dynamic: ${escapeHtml(item.dynamic || 'No dynamic saved.')}</div>
