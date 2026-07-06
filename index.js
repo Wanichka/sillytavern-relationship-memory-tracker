@@ -1,5 +1,8 @@
-// Relationship Memory Tracker v2.0
+// Relationship Memory Tracker v2.1
 // Full replacement file.
+// v2.1: Panel header shows a character counter: "Relationship Memory (N)".
+//   Axis rows show the saved comment as a hover tooltip (title attribute),
+//   so cards stay compact but full comments are visible on desktop.
 // v2.0: Romance/Attraction is split into two independent axes:
 //   Love/Affection  — emotional attachment: being in love, tenderness, longing,
 //                     the need for this specific person's closeness.
@@ -589,6 +592,21 @@ function deleteCharacter(name) {
     log('Deleted character:', name);
 }
 
+// Panel row for one axis. The comment is not printed in the card (cards stay
+// compact); instead it goes into the title attribute so it shows as a hover
+// tooltip on desktop. escapeHtml also escapes quotes, so it is attribute-safe.
+function axisRow(label, value, status, comment) {
+    const tooltip = comment ? ` title="${escapeHtml(comment)}"` : '';
+    return `<div class="rm-tracker-row"${tooltip}>${label}: ${escapeHtml(value || '0%')} - ${escapeHtml(status || 'Unknown')}</div>`;
+}
+
+function updatePanelCounter(count) {
+    const titleEl = document.querySelector('#rm-tracker-title');
+    if (titleEl) {
+        titleEl.textContent = `Relationship Memory (${count})`;
+    }
+}
+
 function renderPanel() {
     const memory = getMemory();
     const body = document.querySelector('#rm-tracker-body');
@@ -596,6 +614,8 @@ function renderPanel() {
     if (!body) return;
 
     const names = Object.keys(memory);
+
+    updatePanelCounter(names.length);
 
     if (names.length === 0) {
         body.innerHTML = '<div class="rm-tracker-empty">No relationship memory yet.</div>';
@@ -611,11 +631,11 @@ function renderPanel() {
                     <div class="rm-tracker-name">${escapeHtml(name)}</div>
                     <button class="rm-tracker-delete" type="button" data-rm-index="${index}" title="Delete this memory" aria-label="Delete this memory">×</button>
                 </div>
-                <div class="rm-tracker-row">Trust/Friendship: ${escapeHtml(item.trust || '0%')} - ${escapeHtml(item.trustStatus || 'Unknown')}</div>
-                <div class="rm-tracker-row">Love/Affection: ${escapeHtml(item.love || '0%')} - ${escapeHtml(item.loveStatus || 'Unknown')}</div>
-                <div class="rm-tracker-row">Desire/Attraction: ${escapeHtml(item.desire || '0%')} - ${escapeHtml(item.desireStatus || 'Unknown')}</div>
-                <div class="rm-tracker-row">Hostility/Conflict: ${escapeHtml(item.hostility || '0%')} - ${escapeHtml(item.hostilityStatus || 'Unknown')}</div>
-                <div class="rm-tracker-row">Jealousy/Possessiveness: ${escapeHtml(item.jealousy || '0%')} - ${escapeHtml(item.jealousyStatus || 'Unknown')}</div>
+                ${axisRow('Trust/Friendship', item.trust, item.trustStatus, item.trustComment)}
+                ${axisRow('Love/Affection', item.love, item.loveStatus, item.loveComment)}
+                ${axisRow('Desire/Attraction', item.desire, item.desireStatus, item.desireComment)}
+                ${axisRow('Hostility/Conflict', item.hostility, item.hostilityStatus, item.hostilityComment)}
+                ${axisRow('Jealousy/Possessiveness', item.jealousy, item.jealousyStatus, item.jealousyComment)}
                 <div class="rm-tracker-row">Dynamic: ${escapeHtml(item.dynamic || 'No dynamic saved.')}</div>
                 <div class="rm-tracker-row">Status: ${escapeHtml(item.status || 'saved')}</div>
             </div>
