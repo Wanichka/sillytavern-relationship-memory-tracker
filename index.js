@@ -1,5 +1,14 @@
-// Relationship Memory Tracker v2.1
+// Relationship Memory Tracker v2.2
 // Full replacement file.
+// v2.2: Storage moved to SillyTavern chat metadata (lives in the chat file on
+//   the server: survives browser cache clearing, travels with chat backups).
+//   Dual-write: every save also mirrors to localStorage as a warm local backup.
+//   Read priority: chat metadata first; if its slot is empty, memory is seeded
+//   ONCE from localStorage (existing non-empty metadata is never overwritten
+//   by localStorage). If the metadata API is unavailable (no chat open yet,
+//   or an incompatible SillyTavern version), the tracker quietly runs on
+//   localStorage alone, exactly like v2.1 — with a one-time console warning
+//   when a chat is open but metadata cannot be reached.
 // v2.1: Panel header shows a character counter: "Relationship Memory (N)".
 //   Axis rows show the saved comment as a hover tooltip (title attribute),
 //   so cards stay compact but full comments are visible on desktop.
@@ -28,8 +37,9 @@
 // but statuses, comments, and Current Dynamic as flexible reference notes.
 // Universal parser: no hardcoded user names, no hardcoded character names.
 // Handles special spacing character "ㅤ".
-// Memory is stored per chat (keyed by current chat id), with a
-// fallback to the old global key when no chat id is available.
+// Memory is keyed per chat. Primary store: chat metadata (v2.2+);
+// mirror/fallback: localStorage (per-chat key, with the old global key
+// when no chat id is available).
 
 import {
     eventSource,
@@ -71,6 +81,60 @@ function getStorageKey() {
     return `${STORAGE_KEY}::${chatId}`;
 }
 
+/* ------------------------------ storage layer ------------------------------ */
+
+// Key inside the chat metadata object. Metadata is serialized into the chat
+// file on the SillyTavern server, so this survives browser cache clearing and
+// travels together with chat backups/exports.
+const METADATA_KEY = 'rm_tracker_memory';
+
+let warnedMetadataUnavailable = false;
+
+function getChatMetadataSafe() {
+    const context = getContextSafe();
+
+    // API name differs between SillyTavern versions.
+    const meta = context?.chatMetadata ?? context?.chat_metadata ?? null;
+
+    return (meta && typeof meta === 'object') ? meta : null;
+}
+
+// Ask SillyTavern to persist chat metadata to the server. API name differs
+// between versions; if neither exists, the write stays in-memory only (the
+// localStorage mirror still guarantees nothing is lost on this device).
+function persistChatMetadata() {
+    const context = getContextSafe();
+
+    try {
+        if (typeof context?.saveMetadata === 'function') {
+            context.saveMetadata();
+            return true;
+        }
+
+        if (typeof context?.saveMetadataDebounced === 'function') {
+            context.saveMetadataDebounced();
+            return true;
+        }
+    } catch (error) {
+        console.error('[Relationship Memory Tracker] Failed to persist chat metadata:', error);
+    }
+
+    return false;
+}
+
+function readLocalStorageMemory() {
+    try {
+        const raw = localStorage.getItem(getStorageKey());
+        if (!raw) return null;
+
+        const parsed = JSON.parse(raw);
+        return (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : null;
+    } catch (error) {
+        console.error('[Relationship Memory Tracker] Failed to read localStorage memory:', error);
+        return null;
+    }
+}
+
 // One-time per-chat migration from the single Romance/Attraction axis to the
 // Love/Affection + Desire/Attraction split. Runs on every read, but only
 // converts records that still carry the old "romance" field, so after the
@@ -106,29 +170,88 @@ function migrateMemory(memory) {
 }
 
 function getMemory() {
-    try {
-        const raw = localStorage.getItem(getStorageKey());
-        if (!raw) return {};
+    let memory = null;
 
-        const memory = JSON.parse(raw);
+    const meta = getChatMetadataSafe();
 
-        if (migrateMemory(memory)) {
-            saveMemory(memory);
-            log('Memory migrated to Love/Desire format.');
+    if (meta) {
+        const stored = meta[METADATA_KEY];
+
+        if (stored && typeof stored === 'object' && !Array.isArray(stored) && Object.keys(stored).length > 0) {
+            // Primary source of truth.
+            memory = stored;
+        } else {
+            // Metadata slot is empty: seed it ONCE from localStorage.
+            // This is the automatic v2.1 -> v2.2 migration. It only ever runs
+            // into an EMPTY slot — localStorage never overwrites existing
+            // metadata, so a stale local copy cannot roll back real progress.
+            const local = readLocalStorageMemory();
+
+            if (local && Object.keys(local).length > 0) {
+                meta[METADATA_KEY] = local;
+                persistChatMetadata();
+                memory = local;
+                log('Seeded chat metadata from localStorage backup.');
+            }
         }
+    } else {
+        // Metadata unavailable. Normal during page boot / chat switching;
+        // suspicious if a chat is actually open — warn once so it is visible.
+        let chatId = null;
+        try {
+            const context = getContextSafe();
+            chatId = context?.getCurrentChatId?.() ?? context?.chatId ?? null;
+        } catch (e) { /* ignore */ }
 
-        return memory;
-    } catch (error) {
-        console.error('[Relationship Memory Tracker] Failed to read memory:', error);
-        return {};
+        if (chatId && !warnedMetadataUnavailable) {
+            console.warn('[Relationship Memory Tracker] Chat metadata unavailable; running on localStorage fallback.');
+            warnedMetadataUnavailable = true;
+        }
     }
+
+    if (!memory) {
+        memory = readLocalStorageMemory() || {};
+    }
+
+    if (migrateMemory(memory)) {
+        saveMemory(memory);
+        log('Memory migrated to Love/Desire format.');
+    }
+
+    return memory;
 }
 
+// Dual-write: chat metadata is the source of truth, localStorage is a warm
+// local backup (and the only store when metadata is unavailable).
 function saveMemory(memory) {
+    const meta = getChatMetadataSafe();
+
+    if (meta) {
+        meta[METADATA_KEY] = memory;
+        persistChatMetadata();
+    }
+
     try {
         localStorage.setItem(getStorageKey(), JSON.stringify(memory, null, 2));
     } catch (error) {
-        console.error('[Relationship Memory Tracker] Failed to save memory:', error);
+        console.error('[Relationship Memory Tracker] Failed to save memory to localStorage:', error);
+    }
+}
+
+// Full wipe for the current chat: both stores at once, so a cleared chat does
+// not resurrect from the localStorage mirror on the next read.
+function clearMemory() {
+    const meta = getChatMetadataSafe();
+
+    if (meta && METADATA_KEY in meta) {
+        delete meta[METADATA_KEY];
+        persistChatMetadata();
+    }
+
+    try {
+        localStorage.removeItem(getStorageKey());
+    } catch (error) {
+        console.error('[Relationship Memory Tracker] Failed to clear localStorage memory:', error);
     }
 }
 
@@ -800,7 +923,7 @@ function createUi() {
         const confirmed = confirm('Clear all saved relationship memory?');
         if (!confirmed) return;
 
-        localStorage.removeItem(getStorageKey());
+        clearMemory();
         renderPanel();
         updatePromptInjection();
         log('Memory cleared.');
