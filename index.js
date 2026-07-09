@@ -31,7 +31,7 @@
 // those present": absent characters stay in memory but must be omitted from the
 // visible info blocks.
 // Draggable panel bounded to the viewport (tablet-safe).
-// Jealousy/Possessiveness axis; per-character delete buttons.
+// Jealousy axis; per-character delete buttons.
 // parseAxis: the trailing "(comment)" on each axis line is optional.
 // Prompt injection treats percentages as authoritative,
 // but statuses, comments, and Current Dynamic as flexible reference notes.
@@ -357,7 +357,7 @@ function parseCharacterBlock(name, block) {
     const love = parseAxis(block, 'Love/Affection') || parseAxis(block, 'Romance/Attraction');
     const desire = parseAxis(block, 'Desire/Attraction');
     const hostility = parseAxis(block, 'Hostility/Conflict');
-    const jealousy = parseAxis(block, 'Jealousy/Possessiveness');
+    const jealousy = parseAxis(block, 'Jealousy');
 
     const dynamicMatch = block.match(/Current\s+Dynamic:\s*([^\n]+)/i);
 
@@ -758,7 +758,7 @@ function renderPanel() {
                 ${axisRow('Love/Affection', item.love, item.loveStatus, item.loveComment)}
                 ${axisRow('Desire/Attraction', item.desire, item.desireStatus, item.desireComment)}
                 ${axisRow('Hostility/Conflict', item.hostility, item.hostilityStatus, item.hostilityComment)}
-                ${axisRow('Jealousy/Possessiveness', item.jealousy, item.jealousyStatus, item.jealousyComment)}
+                ${axisRow('Jealousy', item.jealousy, item.jealousyStatus, item.jealousyComment)}
                 <div class="rm-tracker-row">Dynamic: ${escapeHtml(item.dynamic || 'No dynamic saved.')}</div>
                 <div class="rm-tracker-row">Status: ${escapeHtml(item.status || 'saved')}</div>
             </div>
