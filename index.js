@@ -654,7 +654,7 @@ function buildMemoryText() {
         lines.push(formatAxisLine('Love/Affection', item.love, item.loveStatus, item.loveComment));
         lines.push(formatAxisLine('Desire/Attraction', item.desire, item.desireStatus, item.desireComment));
         lines.push(formatAxisLine('Hostility/Conflict', item.hostility, item.hostilityStatus, item.hostilityComment));
-        lines.push(formatAxisLine('Jealousy/Possessiveness', item.jealousy, item.jealousyStatus, item.jealousyComment));
+        lines.push(formatAxisLine('Jealousy', item.jealousy, item.jealousyStatus, item.jealousyComment));
         lines.push(`Current Dynamic: ${item.dynamic || 'No current dynamic saved.'}`);
         lines.push(`Status: ${item.status || 'saved'}.`);
         lines.push('');
