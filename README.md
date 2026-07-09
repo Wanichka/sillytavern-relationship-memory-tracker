@@ -10,7 +10,7 @@ A small SillyTavern extension that tracks relationship stats from `<relationship
   - Love/Affection (emotional attachment)
   - Desire/Attraction (physical pull)
   - Hostility/Conflict
-  - Jealousy/Possessiveness
+  - Jealousy
 - Keeps offscreen characters saved instead of deleting them
 - Injects saved relationship memory into the prompt; the injection instructs the model to keep absent characters out of visible info blocks (no `*offscreen*` placeholders)
 - Memory is stored per chat (keyed by chat id)
@@ -50,7 +50,7 @@ Trust/Friendship: [50%] - [Internal Feeling sentence]
 Love/Affection: [10%] - [Internal Feeling sentence]
 Desire/Attraction: [5%] - [Internal Feeling sentence]
 Hostility/Conflict: [0%] - [Internal Feeling sentence]
-Jealousy/Possessiveness: [0%] - [Internal Feeling sentence]
+Jealousy: [0%] - [Internal Feeling sentence]
 Current Dynamic: One sentence about the overall emotional tension and direction.
 ; Second Character:
 Trust/Friendship: [80%] - [Internal Feeling sentence]
