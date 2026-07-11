@@ -1,5 +1,8 @@
-// Relationship Memory Tracker v2.2
+// Relationship Memory Tracker v2.2.2
 // Full replacement file.
+// v2.2.2: Jealousy axis renamed from "Jealousy/Possessiveness" to "Jealousy".
+//   Parser accepts BOTH names during transition (old name lives in chat
+//   history, so the model will keep emitting it for a while).
 // v2.2: Storage moved to SillyTavern chat metadata (lives in the chat file on
 //   the server: survives browser cache clearing, travels with chat backups).
 //   Dual-write: every save also mirrors to localStorage as a warm local backup.
@@ -357,7 +360,12 @@ function parseCharacterBlock(name, block) {
     const love = parseAxis(block, 'Love/Affection') || parseAxis(block, 'Romance/Attraction');
     const desire = parseAxis(block, 'Desire/Attraction');
     const hostility = parseAxis(block, 'Hostility/Conflict');
-    const jealousy = parseAxis(block, 'Jealousy');
+
+    // New short name first; old "Jealousy/Possessiveness" still accepted
+    // during transition (it lives in chat history, so the model will keep
+    // emitting it for a while). Note: parseAxis('Jealousy') alone would NOT
+    // match the old line — after "Jealousy" there is a "/" instead of ":".
+    const jealousy = parseAxis(block, 'Jealousy') || parseAxis(block, 'Jealousy/Possessiveness');
 
     const dynamicMatch = block.match(/Current\s+Dynamic:\s*([^\n]+)/i);
 
