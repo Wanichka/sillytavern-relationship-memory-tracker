@@ -1,5 +1,27 @@
-// Relationship Memory Tracker v2.2.2
+// Relationship Memory Tracker v2.3.0
 // Full replacement file.
+// v2.3.0: the injected block no longer carries scene state.
+//   WHY: "Current Dynamic" is a snapshot of one moment (pose, place, tone).
+//   Injected at depth 0 with SYSTEM role it became the last thing the model
+//   read before answering, so a stale dynamic ("...in the library") was
+//   re-asserted on every reroll, and each answer re-saved it — a self-
+//   sustaining loop that deleting messages could not break.
+//   Changes:
+//     - "Current Dynamic" and "Status: present/offscreen" are NOT injected
+//       any more. They are still parsed, saved and shown in the panel —
+//       they are useful to the reader, harmful to the model.
+//     - Preamble compressed: the eight anti-roster lines (added in v1.6 to
+//       stop *offscreen* placeholders leaking into info blocks) existed
+//       mostly to fight the Status/Dynamic fields. With those gone, two
+//       lines carry the remaining meaning: "this is memory, not a roster"
+//       and "info blocks = present characters only".
+//     - Memory now follows the visible chat: MESSAGE_DELETED and
+//       MESSAGE_SWIPED trigger a re-read of the current last assistant post,
+//       so a rerolled-away scene stops being remembered. Percentages stay
+//       sticky (nothing is reset when no block is found).
+//     - Event subscriptions are guarded: an event name missing from this
+//       SillyTavern version is skipped with a console warning instead of
+//       throwing "Cannot listen to undefined event".
 // v2.2.2: Jealousy axis renamed from "Jealousy/Possessiveness" to "Jealousy".
 //   Parser accepts BOTH names during transition (old name lives in chat
 //   history, so the model will keep emitting it for a while).
@@ -30,14 +52,11 @@
 // Current Dynamic line.
 // v1.7: hardened absence rule — bans placeholder lines (*offscreen* etc.),
 // presence measured at END of post.
-// Injected memory explicitly separates "remember everyone" from "show only
-// those present": absent characters stay in memory but must be omitted from the
-// visible info blocks.
 // Draggable panel bounded to the viewport (tablet-safe).
 // Jealousy axis; per-character delete buttons.
 // parseAxis: the trailing "(comment)" on each axis line is optional.
 // Prompt injection treats percentages as authoritative,
-// but statuses, comments, and Current Dynamic as flexible reference notes.
+// but statuses and comments as flexible reference notes.
 // Universal parser: no hardcoded user names, no hardcoded character names.
 // Handles special spacing character "ㅤ".
 // Memory is keyed per chat. Primary store: chat metadata (v2.2+);
@@ -374,6 +393,7 @@ function parseCharacterBlock(name, block) {
         trust: trust.value,
         trustStatus: trust.status,
         trustComment: trust.comment,
+        // Kept for the panel only — since v2.3.0 these are never injected.
         dynamic: dynamicMatch ? dynamicMatch[1].trim() : 'No current dynamic parsed.',
         status: 'present',
         lastUpdated: new Date().toISOString()
@@ -617,6 +637,33 @@ function parseLastMessageManually() {
     }
 }
 
+/* --------------------------- resync with the chat --------------------------- */
+
+// Before v2.3.0 memory ignored deletions and swipes: a scene that was
+// rerolled away stayed in memory and kept being injected, so rerolls could
+// not escape it. Now the current last assistant post is re-read instead.
+// Note this is deliberately conservative: if that post has no relationship
+// block (a swipe still generating, a user message on top), updateMemoryFromText
+// changes nothing — saved percentages must survive, they are the whole point.
+let resyncTimer = null;
+
+function resyncFromChat() {
+    // Deletions arrive in bursts (deleting several messages at once);
+    // one pass after the dust settles is enough.
+    clearTimeout(resyncTimer);
+    resyncTimer = setTimeout(() => {
+        const text = getLastAssistantMessageText();
+
+        if (!text) {
+            log('Resync skipped: no assistant message available.');
+            return;
+        }
+
+        const ok = updateMemoryFromText(text, false);
+        log(ok ? 'Memory resynced from current last post.' : 'Resync found no block; memory left untouched.');
+    }, 300);
+}
+
 // Axis line for the injection. With the Internal Feeling format the whole
 // sentence lives in the "status" slot and the parenthetical comment is often
 // absent — omit empty "()" instead of printing "(No comment.)".
@@ -636,21 +683,18 @@ function buildMemoryText() {
     const lines = [];
 
     lines.push('<relationship_memory>');
-    lines.push('This is a HIDDEN long-term memory store, not a scene roster. It lists ALL known characters, including ones not currently present.');
-    lines.push('CRITICAL: This block is for your reference only. Do NOT treat it as the list of characters to write about.');
-    lines.push('In the visible info blocks (<relationship>, char_mood, char_thoughts, char_outfit, etc.) include ONLY characters who are physically present in the CURRENT scene.');
-    lines.push('A character listed here who is NOT physically present at the END of the current post must be OMITTED from every info block ENTIRELY.');
-    lines.push('Do not list absent characters at all — not even with placeholders like *offscreen*, *absent*, *N/A*, or an empty value. An absent character has NO line in any info block.');
-    lines.push('If a character was in the scene earlier in the post but left before its end, they count as absent.');
-    lines.push('Keep the saved memory of absent characters unchanged; simply do not output them.');
-    lines.push('The "Status" and "Current Dynamic" fields here describe saved memory, not presence — never use them as a reason to write an absent character into an info block.');
-    lines.push('Use saved percentages as the source of truth for returning characters.');
-    lines.push('Statuses, comments, and Current Dynamic are reference notes, not fixed labels.');
-    lines.push('When a character appears again, keep the saved percentages as the baseline, but update the feeling descriptions and Current Dynamic to fit the current scene.');
-    lines.push('Do not reset returning characters to 0 unless the story clearly justifies it.');
+
+    // Two lines carry what the old eight-line anti-roster preamble carried.
+    // The list still contains absent characters (that is its purpose), so the
+    // "memory, not a roster" distinction must stay explicit.
+    lines.push('Hidden long-term memory of ALL known characters, including ones who are not in the scene. Reference only.');
+    lines.push('In the visible info blocks (<relationship>, char_mood, char_thoughts, char_outfit, etc.) include ONLY characters who are physically present in the current scene.');
+
+    // Percentage mechanics — the reason this block exists at all.
+    lines.push('Saved percentages are the source of truth for returning characters: keep them as the baseline and do not reset anyone to 0 unless the story clearly justifies it.');
+    lines.push('Statuses and comments are reference notes, not fixed labels: update the wording to fit the current scene.');
     lines.push('Love/Affection and Desire/Attraction are INDEPENDENT axes: Love is emotional attachment (being in love, tenderness, longing for this person); Desire is physical pull (attraction, tension, wanting). One can be high while the other is low.');
     lines.push('A 0% Love/Affection value means no active romantic progress yet, not a permanent ban, unless lore says romance is impossible.');
-    lines.push('If a Romance Start moment happens, Love/Affection may begin from the saved value according to <relationship_progression>.');
     lines.push('A Desire/Attraction value marked "Not yet assessed" was never measured: when that character next appears, evaluate it fresh from their personality, history, and the saved Love/Affection — do not treat it as a confirmed zero.');
     lines.push('');
 
@@ -663,8 +707,11 @@ function buildMemoryText() {
         lines.push(formatAxisLine('Desire/Attraction', item.desire, item.desireStatus, item.desireComment));
         lines.push(formatAxisLine('Hostility/Conflict', item.hostility, item.hostilityStatus, item.hostilityComment));
         lines.push(formatAxisLine('Jealousy', item.jealousy, item.jealousyStatus, item.jealousyComment));
-        lines.push(`Current Dynamic: ${item.dynamic || 'No current dynamic saved.'}`);
-        lines.push(`Status: ${item.status || 'saved'}.`);
+
+        // NOT injected since v2.3.0: "Current Dynamic" (a scene snapshot that
+        // anchored the model to stale scenes) and "Status: present/offscreen"
+        // (read as a presence roster). Both are still visible in the panel.
+
         lines.push('');
     }
 
@@ -987,6 +1034,20 @@ function handleChatChanged() {
     updatePromptInjection();
 }
 
+// Subscribe defensively: event names differ between SillyTavern versions, and
+// eventSource.on(undefined, ...) throws "Cannot listen to undefined event",
+// which can abort the rest of init().
+function onEvent(label, handler) {
+    const name = event_types?.[label];
+
+    if (!name) {
+        console.warn(`[Relationship Memory Tracker] Event ${label} is not available in this SillyTavern version; skipping.`);
+        return;
+    }
+
+    eventSource.on(name, handler);
+}
+
 function init() {
     log('Extension loaded.');
 
@@ -994,10 +1055,15 @@ function init() {
     renderPanel();
     updatePromptInjection();
 
-    eventSource.on(event_types.MESSAGE_RECEIVED, handleIncomingMessage);
-    eventSource.on(event_types.GENERATE_BEFORE_COMBINE_PROMPTS, handleBeforeGeneration);
-    eventSource.on(event_types.GENERATION_STARTED, handleBeforeGeneration);
-    eventSource.on(event_types.CHAT_CHANGED, handleChatChanged);
+    onEvent('MESSAGE_RECEIVED', handleIncomingMessage);
+    onEvent('GENERATE_BEFORE_COMBINE_PROMPTS', handleBeforeGeneration);
+    onEvent('GENERATION_STARTED', handleBeforeGeneration);
+    onEvent('CHAT_CHANGED', handleChatChanged);
+
+    // Follow the visible chat: a deleted or rerolled scene must stop being
+    // remembered (percentages still survive — see resyncFromChat).
+    onEvent('MESSAGE_DELETED', resyncFromChat);
+    onEvent('MESSAGE_SWIPED', resyncFromChat);
 
     log('Listening for MESSAGE_RECEIVED.');
     log('Prompt injection hook enabled.');
