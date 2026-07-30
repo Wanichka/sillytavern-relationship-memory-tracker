@@ -6,7 +6,7 @@
   "js": "index.js",
   "css": "style.css",
   "author": "Wani",
-  "version": "2.0",
+  "version": "v2.4.0",
   "homePage": "https://github.com/Wanichka/sillytavern-relationship-memory-tracker",
   "auto_update": true
 }
