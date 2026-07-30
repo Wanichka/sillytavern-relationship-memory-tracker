@@ -1,5 +1,22 @@
-// Relationship Memory Tracker v2.3.0
+// Relationship Memory Tracker v2.4.0
 // Full replacement file.
+// v2.4.0: the panel's HEIGHT can be dragged (width stays as style.css sets it —
+//   340px, shared by the extension set). The grip is a thin strip with a
+//   vertical cursor, placed BETWEEN the list and the button row: a corner grip
+//   would sit on top of "Copy" and steal its lower edge, and a two-axis corner
+//   invites mis-taps on a tablet.
+//   - The panel is not a flex column: its body height is calc(100% - 100px)
+//     (44px header + 56px actions). The 12px strip changes that arithmetic, so
+//     the body is re-declared as calc(100% - 112px) from here; the mobile
+//     media query in style.css keeps its !important 100px value and the strip
+//     is hidden below 600px, where the panel is full-screen by design.
+//   - Height is clamped by the panel's real anchor: an untouched panel grows
+//     upward (bottom is fixed by CSS), a dragged one grows downward, and either
+//     way it cannot cross the top toolbar gap or the bottom edge.
+//   - Height is saved (rm_tracker_panel_size) and re-clamped when the panel is
+//     opened and on window resize / rotation. Double-click the strip to reset.
+//   - The grip's CSS is injected from here on purpose, so updating touches
+//     index.js only and style.css can stay as it is.
 // v2.3.0: the injected block no longer carries scene state.
 //   WHY: "Current Dynamic" is a snapshot of one moment (pose, place, tone).
 //   Injected at depth 0 with SYSTEM role it became the last thing the model
@@ -831,6 +848,179 @@ function renderPanel() {
     });
 }
 
+/* ------------------------------- resizable UI ------------------------------- */
+
+// Real resize (height in px), not transform: scale() — the card list scrolls,
+// so a taller panel must show MORE cards, not bigger text. The width is left to
+// style.css on purpose: all three extensions share it.
+const SIZE_KEY = 'rm_tracker_panel_size';
+const PANEL_MIN_H = 220;
+const COMPACT_WIDTH = 600;   // must match the media query in style.css
+const GRIP_HEIGHT = 12;      // must match #rm-tracker-resize in ensureResizeStyles
+const HEADER_HEIGHT = 44;    // from style.css
+const ACTIONS_HEIGHT = 56;   // from style.css
+
+// visualViewport is more honest than innerHeight on tablets, where browser
+// chrome expands and collapses.
+function viewportSize() {
+    const vv = window.visualViewport;
+    if (vv && vv.width && vv.height) {
+        return { w: vv.width, h: vv.height };
+    }
+    return { w: window.innerWidth, h: window.innerHeight };
+}
+
+// Under this width style.css takes the panel full-screen; a saved height would
+// fight that layout, so resizing is disabled there entirely.
+function isCompactViewport() {
+    return viewportSize().w <= COMPACT_WIDTH;
+}
+
+// Clamp by the panel's REAL anchor. Untouched, the panel is pinned to the
+// bottom by CSS, so growing it moves its top edge up; once dragged it is pinned
+// by top, so growing it moves its bottom edge down.
+function clampHeight(el, height) {
+    const vp = viewportSize();
+    const rect = el.getBoundingClientRect();
+
+    const room = el.style.top
+        ? vp.h - rect.top - DRAG_EDGE
+        : rect.bottom - DRAG_TOP_MARGIN;
+
+    const maxH = Math.max(PANEL_MIN_H, room);
+    return clamp(height, PANEL_MIN_H, maxH);
+}
+
+function applyHeight(el, height) {
+    el.style.setProperty('height', `${height}px`, 'important');
+}
+
+function clearHeight(el) {
+    el.style.removeProperty('height');
+}
+
+// Re-applied on open and on resize/rotation, so a height saved on a large
+// screen can never leave the panel taller than the current viewport.
+function restoreHeight(el) {
+    if (isCompactViewport()) {
+        clearHeight(el);
+        return;
+    }
+    try {
+        const saved = JSON.parse(localStorage.getItem(SIZE_KEY) || 'null');
+        if (!saved || !Number.isFinite(saved.h)) return;
+        applyHeight(el, clampHeight(el, saved.h));
+    } catch (error) {
+        console.error('[Relationship Memory Tracker] Failed to restore height:', error);
+    }
+}
+
+function resetHeight(el) {
+    try {
+        localStorage.removeItem(SIZE_KEY);
+    } catch (e) { /* ignore */ }
+    clearHeight(el);
+}
+
+// The grip's styles live here rather than in style.css so that updating this
+// extension only ever means replacing index.js. The body height is re-declared
+// too: the strip takes 12px that the original calc(100% - 100px) didn't know
+// about. Two IDs outrank the single-ID rule in style.css on desktop, while the
+// mobile media query keeps winning through !important.
+function ensureResizeStyles() {
+    if (document.querySelector('#rm-tracker-resize-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'rm-tracker-resize-styles';
+    style.textContent = `
+        #rm-tracker-panel #rm-tracker-body {
+            height: calc(100% - ${HEADER_HEIGHT + ACTIONS_HEIGHT + GRIP_HEIGHT}px);
+        }
+        #rm-tracker-resize {
+            height: ${GRIP_HEIGHT}px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: ns-resize;
+            touch-action: none;
+            background: var(--rm-bg);
+        }
+        #rm-tracker-resize::before {
+            content: '';
+            width: 42px;
+            height: 3px;
+            border-radius: 3px;
+            background: currentColor;
+            opacity: 0.25;
+            transition: opacity 0.2s ease;
+        }
+        #rm-tracker-panel:hover #rm-tracker-resize::before,
+        #rm-tracker-panel.rm-resizing #rm-tracker-resize::before {
+            opacity: 0.6;
+        }
+        #rm-tracker-panel.rm-resizing {
+            user-select: none;
+        }
+        @media (max-width: ${COMPACT_WIDTH}px) {
+            #rm-tracker-resize { display: none; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Resize `el` vertically by dragging `grip`; remembers the height. Horizontal
+// pointer movement is ignored entirely — the width belongs to style.css.
+// Double-click restores the default height.
+function makeResizable(el, grip) {
+    if (!grip) return;
+    grip.style.touchAction = 'none';
+
+    let resizing = false;
+    let startY = 0;
+    let baseH = 0;
+
+    grip.addEventListener('pointerdown', (event) => {
+        if (event.button != null && event.button !== 0) return;
+        if (isCompactViewport()) return;
+
+        resizing = true;
+        baseH = el.getBoundingClientRect().height;
+        startY = event.clientY;
+        el.classList.add('rm-resizing');
+        try { grip.setPointerCapture(event.pointerId); } catch (e) { /* ignore */ }
+        event.preventDefault();
+    });
+
+    grip.addEventListener('pointermove', (event) => {
+        if (!resizing) return;
+        applyHeight(el, clampHeight(el, baseH + (event.clientY - startY)));
+    });
+
+    function finish(event) {
+        if (!resizing) return;
+        resizing = false;
+        el.classList.remove('rm-resizing');
+        try { grip.releasePointerCapture(event.pointerId); } catch (e) { /* ignore */ }
+
+        const rect = el.getBoundingClientRect();
+        try {
+            localStorage.setItem(SIZE_KEY, JSON.stringify({ h: rect.height }));
+            // A dragged panel is pinned by top: remember where it ended up so a
+            // reopen restores the same geometry.
+            if (el.style.top) {
+                localStorage.setItem('rm_tracker_panel_pos', JSON.stringify({ left: rect.left, top: rect.top }));
+            }
+        } catch (e) { /* ignore */ }
+    }
+    grip.addEventListener('pointerup', finish);
+    grip.addEventListener('pointercancel', finish);
+
+    grip.addEventListener('dblclick', () => {
+        resetHeight(el);
+    });
+}
+
 /* ------------------------------- draggable UI ------------------------------- */
 
 function clamp(value, min, max) {
@@ -932,6 +1122,8 @@ function createUi() {
         return;
     }
 
+    ensureResizeStyles();
+
     const button = document.createElement('button');
     button.id = 'rm-tracker-button';
     button.textContent = 'Relationships';
@@ -947,6 +1139,7 @@ function createUi() {
             <button id="rm-tracker-close" type="button">×</button>
         </div>
         <div id="rm-tracker-body"></div>
+        <div id="rm-tracker-resize" title="Drag to change height, double-click to reset"></div>
         <div id="rm-tracker-actions">
             <button id="rm-tracker-parse" type="button">Parse Last</button>
             <button id="rm-tracker-clear" type="button">Clear</button>
@@ -961,9 +1154,30 @@ function createUi() {
         handle: panel.querySelector('#rm-tracker-header'),
     });
 
+    makeResizable(panel, panel.querySelector('#rm-tracker-resize'));
+
+    // Height first: the position clamp depends on the panel's dimensions.
+    restoreHeight(panel);
+
     button.addEventListener('click', () => {
-        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        const opening = panel.style.display === 'none';
+        panel.style.display = opening ? 'block' : 'none';
+        if (opening) {
+            // A hidden panel measures 0x0, so both clamps only mean something
+            // once it is actually on screen.
+            restoreHeight(panel);
+            restorePosition(panel, 'rm_tracker_panel_pos');
+        }
         renderPanel();
+    });
+
+    // Rotating a tablet / resizing the window changes what "on-screen" means:
+    // re-clamp an open panel so it never ends up taller than the viewport.
+    window.addEventListener('resize', () => {
+        if (panel.style.display !== 'none') {
+            restoreHeight(panel);
+            restorePosition(panel, 'rm_tracker_panel_pos');
+        }
     });
 
     document.querySelector('#rm-tracker-close').addEventListener('click', () => {
