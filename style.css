@@ -215,3 +215,53 @@
         padding: 7px 4px;
     }
 }
+
+/* Optional Roleplay Tools dock. Existing parsers, storage and prompts are intact. */
+#rpt-shell #rm-tracker-panel[data-rpt-docked] {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+    display: flex;
+    flex-direction: column;
+    z-index: auto !important;
+    border: 0;
+    border-radius: 0;
+    transform: none !important;
+    backdrop-filter: none;
+}
+#rpt-shell #rm-tracker-panel[data-rpt-docked] #rm-tracker-header {
+    height: auto;
+    flex: 0 0 auto;
+    cursor: default;
+    touch-action: auto !important;
+    gap: 5px;
+    padding: 7px 8px;
+    flex-wrap: wrap;
+}
+#rpt-shell #rm-tracker-panel[data-rpt-docked] #rm-tracker-title {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 15px;
+    color: var(--rm-accent);
+    flex: 1;
+    min-width: 0;
+}
+#rpt-shell #rm-tracker-panel[data-rpt-docked] #rm-tracker-body {
+    height: auto !important;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 9px;
+    overflow-y: auto;
+}
+#rpt-shell #rm-tracker-panel[data-rpt-docked] #rm-tracker-actions {
+    height: auto;
+    flex: 0 0 auto;
+    padding: 7px 8px;
+}
+#rpt-shell #rm-tracker-panel[data-rpt-docked] #rm-tracker-close,
+#rpt-shell #rm-tracker-panel[data-rpt-docked] #rm-tracker-resize { display: none !important; }
+#rpt-shell .rpt-collapsed #rm-tracker-panel[data-rpt-docked] #rm-tracker-body,
+#rpt-shell .rpt-collapsed #rm-tracker-panel[data-rpt-docked] #rm-tracker-actions { display: none !important; }

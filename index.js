@@ -80,6 +80,7 @@
 // mirror/fallback: localStorage (per-chat key, with the old global key
 // when no chat id is available).
 
+import { isRoleplayDocked, registerRoleplayPanel } from './roleplay-tools-adapter.js';
 import {
     eventSource,
     event_types,
@@ -892,6 +893,7 @@ function clampHeight(el, height) {
 }
 
 function applyHeight(el, height) {
+    if (isRoleplayDocked(el)) return;
     el.style.setProperty('height', `${height}px`, 'important');
 }
 
@@ -902,6 +904,7 @@ function clearHeight(el) {
 // Re-applied on open and on resize/rotation, so a height saved on a large
 // screen can never leave the panel taller than the current viewport.
 function restoreHeight(el) {
+    if (isRoleplayDocked(el)) return;
     if (isCompactViewport()) {
         clearHeight(el);
         return;
@@ -981,6 +984,7 @@ function makeResizable(el, grip) {
     let baseH = 0;
 
     grip.addEventListener('pointerdown', (event) => {
+        if (isRoleplayDocked(el)) return;
         if (event.button != null && event.button !== 0) return;
         if (isCompactViewport()) return;
 
@@ -1044,6 +1048,7 @@ function clampToViewport(el, left, top) {
 }
 
 function applyPosition(el, left, top) {
+    if (isRoleplayDocked(el)) return;
     // Inline !important beats the fixed-position rules (and the mobile media
     // query) in style.css, so a dragged element actually moves.
     el.style.setProperty('left', `${left}px`, 'important');
@@ -1053,6 +1058,7 @@ function applyPosition(el, left, top) {
 }
 
 function restorePosition(el, storageKey) {
+    if (isRoleplayDocked(el)) return;
     try {
         const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
         if (saved && Number.isFinite(saved.left) && Number.isFinite(saved.top)) {
@@ -1078,6 +1084,7 @@ function makeDraggable(el, { storageKey, handle = el } = {}) {
     let baseTop = 0;
 
     handle.addEventListener('pointerdown', (event) => {
+        if (isRoleplayDocked(el)) return;
         const innerButton = event.target.closest('button');
         if (innerButton && innerButton !== el) return;
         if (event.button != null && event.button !== 0) return;
@@ -1208,6 +1215,19 @@ function createUi() {
 
         await navigator.clipboard.writeText(text);
         alert('Relationship memory copied.');
+    });
+
+    registerRoleplayPanel({
+        id: 'relations', title: 'Relationship Memory', minHeight: 195,
+        element: panel, launcher: button,
+        controls: panel.querySelector('#rm-tracker-header'),
+        onShow: renderPanel,
+        onRelease: () => {
+            if (panel.style.display !== 'none') {
+                restoreHeight(panel);
+                restorePosition(panel, 'rm_tracker_panel_pos');
+            }
+        },
     });
 }
 
