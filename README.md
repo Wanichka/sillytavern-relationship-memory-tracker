@@ -12,7 +12,8 @@ A small SillyTavern extension that tracks relationship stats from `<relationship
   - Hostility/Conflict
   - Jealousy
 - Keeps offscreen characters saved instead of deleting them
-- Injects saved relationship memory into the prompt; the injection instructs the model to keep absent characters out of visible info blocks (no `*offscreen*` placeholders)
+- Injects only character names and measured relationship percentages into the memory prompt, with general interpretation instructions. Axis statuses, comments, scene dynamics and presence flags remain available in the panel but are never injected. Existing saved memory is filtered automatically; no clearing or re-parsing is needed.
+- Missing/unmeasured axes are omitted from the prompt instead of becoming confirmed zeroes. Old chat messages are not modified or filtered.
 - Memory is stored per chat (keyed by chat id)
 - Automatic migration from the old single Romance/Attraction axis: saved Romance values become Love/Affection, Desire starts as "Not yet assessed" until the character next appears
 - Backward compatible parser: old-format `Romance/Attraction` lines are still read (as Love/Affection)
@@ -36,7 +37,7 @@ Open the Relationships button in the bottom-right corner.
 Buttons:
 - Parse Last: manually parses the latest assistant message
 - Clear: clears saved relationship memory for the current chat
-- Copy: copies current relationship memory
+- Copy: copies the same percentages-only memory text used for prompt injection
 - ×: on each character card deletes that character's memory
 
 The extension automatically updates saved memory from new model replies and injects saved relationship data before generation.

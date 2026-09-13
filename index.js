@@ -1,4 +1,6 @@
-// Relationship Memory Tracker v2.4.0
+// Relationship Memory Tracker v2.4.2
+// v2.4.2: inject only measured percentages. Axis statuses and comments stay
+//   in storage and the panel, but never enter the memory prompt or Copy text.
 // Full replacement file.
 // v2.4.0: the panel's HEIGHT can be dragged (width stays as style.css sets it —
 //   340px, shared by the extension set). The grip is a thin strip with a
@@ -682,12 +684,12 @@ function resyncFromChat() {
     }, 300);
 }
 
-// Axis line for the injection. With the Internal Feeling format the whole
-// sentence lives in the "status" slot and the parenthetical comment is often
-// absent — omit empty "()" instead of printing "(No comment.)".
-function formatAxisLine(label, value, status, comment) {
-    const line = `${label}: ${value || '0%'} - ${status || 'Unknown'}`;
-    return comment ? `${line} (${comment})` : line;
+// Allow only a measured percentage through, including for older saved data.
+// Missing values are omitted rather than silently converted into real zeroes.
+function formatAxisLine(label, value) {
+    const match = String(value ?? '').trim().match(/^\[?(\d{1,3})%\]?$/);
+    if (!match || Number(match[1]) > 100) return null;
+    return `${label}: ${Number(match[1])}%`;
 }
 
 function buildMemoryText() {
@@ -710,21 +712,27 @@ function buildMemoryText() {
 
     // Percentage mechanics — the reason this block exists at all.
     lines.push('Saved percentages are the source of truth for returning characters: keep them as the baseline and do not reset anyone to 0 unless the story clearly justifies it.');
-    lines.push('Statuses and comments are reference notes, not fixed labels: update the wording to fit the current scene.');
     lines.push('Love/Affection and Desire/Attraction are INDEPENDENT axes: Love is emotional attachment (being in love, tenderness, longing for this person); Desire is physical pull (attraction, tension, wanting). One can be high while the other is low.');
     lines.push('A 0% Love/Affection value means no active romantic progress yet, not a permanent ban, unless lore says romance is impossible.');
-    lines.push('A Desire/Attraction value marked "Not yet assessed" was never measured: when that character next appears, evaluate it fresh from their personality, history, and the saved Love/Affection — do not treat it as a confirmed zero.');
+    lines.push('An omitted axis has no measured value: evaluate it when the character next appears; do not assume zero.');
     lines.push('');
 
     for (const name of names) {
         const item = memory[name];
 
         lines.push(`${name}:`);
-        lines.push(formatAxisLine('Trust/Friendship', item.trust, item.trustStatus, item.trustComment));
-        lines.push(formatAxisLine('Love/Affection', item.love, item.loveStatus, item.loveComment));
-        lines.push(formatAxisLine('Desire/Attraction', item.desire, item.desireStatus, item.desireComment));
-        lines.push(formatAxisLine('Hostility/Conflict', item.hostility, item.hostilityStatus, item.hostilityComment));
-        lines.push(formatAxisLine('Jealousy', item.jealousy, item.jealousyStatus, item.jealousyComment));
+        const axes = [
+            ['Trust/Friendship', item.trust],
+            ['Love/Affection', item.love],
+            // Legacy migration uses a zero placeholder for unmeasured desire.
+            ['Desire/Attraction', item.desireStatus === 'Not yet assessed' ? null : item.desire],
+            ['Hostility/Conflict', item.hostility],
+            ['Jealousy', item.jealousy],
+        ];
+        for (const [label, value] of axes) {
+            const line = formatAxisLine(label, value);
+            if (line) lines.push(line);
+        }
 
         // NOT injected since v2.3.0: "Current Dynamic" (a scene snapshot that
         // anchored the model to stale scenes) and "Status: present/offscreen"
