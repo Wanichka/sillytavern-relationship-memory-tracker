@@ -20,6 +20,8 @@ A small SillyTavern extension that tracks relationship stats from `<relationship
 - An axis missing from a reply keeps its previously saved value instead of resetting to 0%
 - Handles special spacing character `ㅤ`
 - Includes a small draggable UI panel with Parse Last, Clear, and Copy buttons, plus per-character delete buttons
+- The settings gear shows draggable name tiles. Drag a tile to any position, including from the bottom of a long list to the top; the settings list scrolls automatically near its edges. The order is saved with the current chat and used in the relationship panel. Focus a tile handle and press Up/Down for keyboard movement.
+- Each tile has a **Names** button for alternate names of the same character. For example, add `Ло, Trafalgar Law` to `Трафальгар Ло`. New `<relationship>` entries using either name update the main card. Existing duplicate cards are kept until you choose to delete them yourself.
 - Mobile UI is not supported yet. The extension can still run in the background, but the visual panel is intended for desktop use.
 
 ## Installation
@@ -39,6 +41,7 @@ Buttons:
 - Clear: clears saved relationship memory for the current chat
 - Copy: copies the same percentages-only memory text used for prompt injection
 - ×: on each character card deletes that character's memory
+- ⚙: open settings to order cards and edit alternate names
 
 The extension automatically updates saved memory from new model replies and injects saved relationship data before generation.
 
