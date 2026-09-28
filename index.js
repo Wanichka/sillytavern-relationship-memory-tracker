@@ -1,4 +1,5 @@
-// Relationship Memory Tracker v2.4.2
+// Relationship Memory Tracker v2.5.0
+// Drag name tiles in settings to order cards, and map alternate names to one memory.
 // v2.4.2: inject only measured percentages. Axis statuses and comments stay
 //   in storage and the panel, but never enter the memory prompt or Copy text.
 // Full replacement file.
@@ -129,6 +130,43 @@ function getStorageKey() {
 // file on the SillyTavern server, so this survives browser cache clearing and
 // travels together with chat backups/exports.
 const METADATA_KEY = 'rm_tracker_memory';
+
+function normalizeCharacterName(name) {
+    return String(name ?? '').normalize('NFKC').trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+}
+
+function parseAliases(text, owner) {
+    const seen = new Set([normalizeCharacterName(owner)]);
+    return String(text ?? '').split(',').map(name => name.trim().replace(/\s+/g, ' ')).filter(name => {
+        const key = normalizeCharacterName(name);
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+}
+
+function memoryOwner(memory, observedName) {
+    const key = normalizeCharacterName(observedName);
+    for (const [owner, item] of Object.entries(memory)) {
+        if ((item?.aliases || []).some(alias => normalizeCharacterName(alias) === key)) return owner;
+    }
+    return Object.keys(memory).find(name => normalizeCharacterName(name) === key) || observedName;
+}
+
+function setMemoryAliases(owner, aliases) {
+    const memory = getMemory();
+    if (!Object.hasOwn(memory, owner)) return { ok: false, conflict: owner };
+    const wanted = new Set(aliases.map(normalizeCharacterName));
+    for (const [other, item] of Object.entries(memory)) {
+        if (other === owner) continue;
+        if ((item?.aliases || []).some(alias => wanted.has(normalizeCharacterName(alias)))) {
+            return { ok: false, conflict: other };
+        }
+    }
+    memory[owner].aliases = aliases;
+    saveMemory(memory);
+    return { ok: true };
+}
 
 let warnedMetadataUnavailable = false;
 
@@ -543,9 +581,11 @@ function updateMemoryFromText(messageText, showAlerts = false) {
     }
 
     for (const character of parsedCharacters) {
-        memory[character.name] = {
-            ...(memory[character.name] || {}),
-            ...character
+        const owner = memoryOwner(memory, character.name);
+        memory[owner] = {
+            ...(memory[owner] || {}),
+            ...character,
+            name: owner,
         };
     }
 
@@ -796,6 +836,16 @@ function deleteCharacter(name) {
     log('Deleted character:', name);
 }
 
+function reorderMemory(orderedNames) {
+    const memory = getMemory();
+    const existing = Object.keys(memory);
+    if (orderedNames.length !== existing.length || new Set(orderedNames).size !== existing.length || orderedNames.some(name => !Object.hasOwn(memory, name))) return false;
+    saveMemory(Object.fromEntries(orderedNames.map(name => [name, memory[name]])));
+    renderPanel();
+    updatePromptInjection();
+    return true;
+}
+
 // Panel row for one axis. The comment is not printed in the card (cards stay
 // compact); instead it goes into the title attribute so it shows as a hover
 // tooltip on desktop. escapeHtml also escapes quotes, so it is attribute-safe.
@@ -823,6 +873,8 @@ function renderPanel() {
 
     if (names.length === 0) {
         body.innerHTML = '<div class="rm-tracker-empty">No relationship memory yet.</div>';
+        const settings = document.querySelector('#rm-tracker-settings');
+        if (settings && settings.style.display !== 'none') renderSettings(settings);
         return;
     }
 
@@ -853,6 +905,85 @@ function renderPanel() {
             const idx = Number(btn.getAttribute('data-rm-index'));
             const name = names[idx];
             deleteCharacter(name);
+        });
+    });
+    const settings = document.querySelector('#rm-tracker-settings');
+    if (settings && settings.style.display !== 'none') renderSettings(settings);
+}
+
+function renderSettings(container) {
+    const memory = getMemory();
+    const names = Object.keys(memory);
+    container.innerHTML = `
+        <div class="rm-tracker-settings-intro">Drag the handles to change card order in this chat. Use Names to make different names update the same card. Existing separate cards stay until you delete them yourself.</div>
+        <div class="rm-tracker-order-list">
+        ${names.length ? names.map((name, index) => `
+            <div class="rm-tracker-alias-row" data-rm-index="${index}">
+                <span class="rm-tracker-order-grip" title="Drag to reorder" aria-label="Drag ${escapeHtml(name)} to reorder" role="button" tabindex="0">☰</span>
+                <span>${escapeHtml(name)}</span>
+                <button class="rm-tracker-alias-edit" type="button" data-rm-index="${index}">Names${memory[name].aliases?.length ? ` (${memory[name].aliases.length})` : ''}</button>
+            </div>
+        `).join('') : '<div class="rm-tracker-empty">No relationship memories yet.</div>'}
+        </div>
+    `;
+    container.querySelectorAll('.rm-tracker-alias-edit').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const owner = names[Number(btn.dataset.rmIndex)];
+            const input = prompt(`Other names for ${owner}, separated by commas:`, (memory[owner].aliases || []).join(', '));
+            if (input === null) return;
+            const result = setMemoryAliases(owner, parseAliases(input, owner));
+            if (!result.ok) {
+                alert(`That name is already assigned to “${result.conflict}”.`);
+                return;
+            }
+            renderSettings(container);
+            updatePromptInjection();
+        });
+    });
+    const list = container.querySelector('.rm-tracker-order-list');
+    list.querySelectorAll('.rm-tracker-order-grip').forEach(grip => {
+        grip.addEventListener('pointerdown', event => {
+            if (event.button != null && event.button !== 0) return;
+            const row = grip.closest('.rm-tracker-alias-row');
+            row.classList.add('rm-tracker-dragging');
+            event.preventDefault();
+            let lastX = event.clientX;
+            let lastY = event.clientY;
+            const move = moving => {
+                lastX = moving.clientX;
+                lastY = moving.clientY;
+                const target = document.elementFromPoint(moving.clientX, moving.clientY)?.closest('.rm-tracker-alias-row');
+                if (!target || target === row || target.parentElement !== list) return;
+                const before = moving.clientY < target.getBoundingClientRect().top + target.offsetHeight / 2;
+                list.insertBefore(row, before ? target : target.nextSibling);
+            };
+            const autoScroll = setInterval(() => {
+                const bounds = container.getBoundingClientRect();
+                if (lastY > bounds.bottom - 40) container.scrollTop += 16;
+                else if (lastY < bounds.top + 40) container.scrollTop -= 16;
+                move({ clientX: lastX, clientY: lastY });
+            }, 40);
+            const finish = () => {
+                clearInterval(autoScroll);
+                row.classList.remove('rm-tracker-dragging');
+                window.removeEventListener('pointermove', move);
+                window.removeEventListener('pointerup', finish);
+                window.removeEventListener('pointercancel', finish);
+                reorderMemory([...list.querySelectorAll('.rm-tracker-alias-row')].map(item => names[Number(item.dataset.rmIndex)]));
+            };
+            window.addEventListener('pointermove', move);
+            window.addEventListener('pointerup', finish);
+            window.addEventListener('pointercancel', finish);
+        });
+        grip.addEventListener('keydown', event => {
+            if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+            const row = grip.closest('.rm-tracker-alias-row');
+            const sibling = event.key === 'ArrowUp' ? row.previousElementSibling : row.nextElementSibling;
+            if (!sibling) return;
+            event.preventDefault();
+            list.insertBefore(row, event.key === 'ArrowUp' ? sibling : sibling.nextSibling);
+            reorderMemory([...list.querySelectorAll('.rm-tracker-alias-row')].map(item => names[Number(item.dataset.rmIndex)]));
+            renderSettings(container);
         });
     });
 }
@@ -1151,9 +1282,11 @@ function createUi() {
     panel.innerHTML = `
         <div id="rm-tracker-header">
             <div id="rm-tracker-title">Relationship Memory</div>
+            <button id="rm-tracker-settings-toggle" type="button" title="Names settings" aria-label="Names settings">⚙</button>
             <button id="rm-tracker-close" type="button">×</button>
         </div>
         <div id="rm-tracker-body"></div>
+        <div id="rm-tracker-settings" style="display:none"></div>
         <div id="rm-tracker-resize" title="Drag to change height, double-click to reset"></div>
         <div id="rm-tracker-actions">
             <button id="rm-tracker-parse" type="button">Parse Last</button>
@@ -1197,6 +1330,16 @@ function createUi() {
 
     document.querySelector('#rm-tracker-close').addEventListener('click', () => {
         panel.style.display = 'none';
+    });
+
+    document.querySelector('#rm-tracker-settings-toggle').addEventListener('click', () => {
+        const body = panel.querySelector('#rm-tracker-body');
+        const settings = panel.querySelector('#rm-tracker-settings');
+        const opening = settings.style.display === 'none';
+        body.style.display = opening ? 'none' : '';
+        settings.style.display = opening ? 'block' : 'none';
+        if (opening) renderSettings(settings);
+        else renderPanel();
     });
 
     document.querySelector('#rm-tracker-parse').addEventListener('click', () => {
