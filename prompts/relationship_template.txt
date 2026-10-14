@@ -1,0 +1,18 @@
+<relationship>
+Relationship with {{user}} = Name1:
+Trust/Friendship: [X%] - [Custom Status] (Comment)
+Love/Affection: [X%] - [Custom Status] (Comment)
+Desire/Attraction: [X%] - [Custom Status] (Comment)
+Hostility/Conflict: [X%] - [Custom Status] (Comment)
+Jealousy: [X%] - [Custom Status] (Comment)
+Current Dynamic: [One sentence: what the relationship currently is and what is unresolved in it. Not where it is heading.]
+; Name2:
+Trust/Friendship: [X%] - [Custom Status] (Comment)
+Love/Affection: [X%] - [Custom Status] (Comment)
+Desire/Attraction: [X%] - [Custom Status] (Comment)
+Hostility/Conflict: [X%] - [Custom Status] (Comment)
+Jealousy: [X%] - [Custom Status] (Comment)
+Current Dynamic: [One sentence: what the relationship currently is and what is unresolved in it. Not where it is heading.]
+(Repeat character entries inside this single <relationship> field for EVERY non-user character directly shown acting, speaking, or thinking in any ongoing scene represented in this reply. Name1 and Name2 are format examples, not a two-character limit. Include all parallel scenes, including scenes away from {{user}}, and characters who leave after participating. A mention, recollection, plan, speculation, or saved memory alone does not count. If at least one character directly participates, do not use the no-characters fallback. Use established percentages for returning characters; participation alone never resets or changes them.
+Strictly follow the <relationship_progression> module. Each axis is independent. X is the current percentage. [Custom Status] is a context-appropriate 2-3 word label naming what this character currently grants {{user}} on that axis — access, reliance, tolerance, restraint, distance, refusal — not how warm or soft they have become. Comment is one sentence in that character's own framing, which may be biased, unfair, or wrong; it is not the narrator's assessment. A relationship entry describes that character's relationship with {{user}} even if {{user}} is absent from the character's scene; do not substitute the relationship between the other scene participants.)
+</relationship>

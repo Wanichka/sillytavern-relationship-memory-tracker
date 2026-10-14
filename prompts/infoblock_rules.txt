@@ -1,0 +1,72 @@
+<infoblock_rules>
+[CRITICAL INSTRUCTION FOR UPDATING STATS/INFOBLOCK]
+
+1. Baseline and Updates:
+Use the previous <infoblock> as the baseline for each returning character's established values. Preserve unchanged values exactly and update only values clearly changed by the current narrative context. Do not regenerate established stats from scratch.
+The cast is dynamic: determine it again from the current reply's narrative before copying character entries. An old cast or "no characters present" fallback is not a baseline for participation. Adding or removing a visible character entry does not reset that character's persistent stats or relationship memory.
+
+Character Participation (applies to all character fields):
+Include every non-user character directly shown acting, speaking, or thinking in any ongoing scene represented in the current reply. Include participants from ALL parallel scenes, even when {{user}} is elsewhere or absent. A character who participates earlier in the reply still counts if they leave before its end.
+Mentioning a name in dialogue, recollection, plans, speculation, or saved memory alone does not count. Do not include the entire relationship-memory roster.
+Use the same participating cast consistently across applicable appearance, relationship, outfit, mood, thoughts, and other character fields. Follow the existing multi-character format; do not add or repeat tags unless the template permits it. Do not invent unknown details to fill a field; use the template's unknown-value convention.
+Use the template's "no characters present" fallback only when NO non-user character directly participates anywhere in the current reply.
+For each participating character, use established relationship percentages from the previous infoblock or saved relationship memory as the baseline. Absence, return, a location change, or participation itself does not change percentages. Evaluate genuinely unmeasured axes under <relationship_progression>; do not automatically initialize them to zero.
+Before sending the reply, check that every directly participating character is accounted for in the applicable character fields and that no empty-cast fallback contradicts the narrative.
+
+2. Structure and Regex Safety:
+Follow the designated template exactly. Do not rename tags, reorder required sections, add new sections, or write content outside the template.
+When a field covers multiple characters, keep them inside that field using the template's specified format. Repeat XML tags only where the template explicitly requires repetition.
+
+3. Controlled Lists:
+Keep list-based fields such as Likes, Dislikes, Skills, Notes, Effects, Inventory, Memories, and relationship details concise and relevant, with an absolute maximum of 10 items per character per list.
+Preserve important persistent entries. Remove or rotate an item only when it becomes outdated, loses relevance, or the list exceeds the limit.
+
+4. Static and Dynamic Fields:
+Static fields change only after a significant explicit event. These include identity, age, species, permanent marks, core appearance, and established background.
+Dynamic fields change only when supported by the narrative. These include outfit, location, health, mood, pain, fatigue, arousal, inventory, relationship status, temporary effects, and current physical state.
+A new reply alone does not imply passage of time or a change of scene.
+
+5. Relevance and Cleanup:
+Remove temporary details once they stop applying, including brief posture, passing smells, momentary expressions, temporary food or drink, one-time object interactions, short-lived arousal, and immediate pain spikes.
+Keep all entries concise, concrete, and useful for continuity. Do not preserve decorative wording, repeated emotional notes, redundant descriptions, or details that no longer affect the scene.
+
+6. Pregnancy and Conception Risk:
+Track pregnancy inside <cycle> using:
+Pregnancy: No / Pending / Yes / Other
+Risk: None
+or:
+Risk: Event date, Day X/Y, cycle state or phase, relevant circumstances, Chance: X%
+- No: no confirmed pregnancy or unresolved viable conception risk.
+- Pending: viable conception risk exists, but the outcome has not yet been resolved.
+- Yes: pregnancy is established; characters do not automatically know.
+- Other: a setting-specific non-standard state.
+Before setting Pending, account for all established factors affecting conception risk, including contraception. If no viable risk remains, use Pregnancy: No and Risk: None.
+If viable risk exists, set Pending and record its event date, cycle state, circumstances, and Chance.
+Default Chance: fertile window 25%; near fertile window 10%; low-probability phase 3%; cycle unknown 10%; reduced but viable risk 1%.
+Preserve Pending and Risk until resolution; recorded event dates and cycle days do not advance with the current cycle.
+If a later viable risk event occurs in the same conception window, retain the higher Chance and record the latest event date.
+If established information proves the original risk was invalid, correct it to Pregnancy: No and Risk: None without a roll.
+
+7. Cycle Consistency:
+Cycle state, contraception, Pregnancy, Risk, and Chance must remain consistent.
+- Pregnancy: No → continue applicable cycle tracking; Risk: None.
+- Pregnancy: Pending → continue applicable cycle tracking and preserve Risk and Chance.
+- Pregnancy: Yes → use Week: X+Y/40 and the current trimester or pregnancy phase; Risk: None.
+- Pregnancy: Other → use the setting-appropriate state.
+If established contraception suppresses or alters the natural cycle, do not assign a natural ovulation or fertile-window phase.
+Do not advance cycle day, pregnancy age, date, or phase unless meaningful in-story time passes.
+A negative roll does not trigger menstruation or reset the cycle; reset to Day 1 only when menstruation begins in the story.
+
+8. Conception Resolution:
+Resolve Pending automatically behind the scenes once 14 in-story days have passed since the latest recorded viable risk event, or earlier upon setting-appropriate definitive confirmation. Do not wait for symptoms, tests, dialogue, or user prompts after the deadline.
+Roll D100 once using the Chance stored in Risk:
+- D100 ≤ Chance → Pregnancy: Yes.
+- D100 > Chance → Pregnancy: No.
+Then set Risk to None.
+One unresolved conception window uses one Pending state and one roll, with the highest applicable Chance.
+Reaching the nominal cycle length does not itself resolve Pending.
+A new reply, scene transition, routine change, or dramatic preference does not resolve Pending before the deadline. Never reroll the same conception window.
+
+9. THOUGHTS:
+<char_thoughts> MUST be private, spontaneous first-person thought, not narration, scene recap, exposition, or commentary for the reader. Write what genuinely occupies the character's mind right now. Do not force attention onto {{user}} or other characters unless naturally relevant. Do not restate visible events or known facts merely to explain the scene. Thoughts may be fragmented, unfinished, uncertain, repetitive, or jump between related ideas. Preserve the character's own voice, vocabulary, temperament, and reasoning.
+</infoblock_rules>

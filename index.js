@@ -1,4 +1,6 @@
-// Relationship Memory Tracker v2.5.0
+// Relationship Memory Tracker v2.5.1
+// v2.5.1: visible info blocks cover participants across the current reply,
+//   including parallel scenes away from the user and characters who leave.
 // Drag name tiles in settings to order cards, and map alternate names to one memory.
 // v2.4.2: inject only measured percentages. Axis statuses and comments stay
 //   in storage and the panel, but never enter the memory prompt or Copy text.
@@ -744,11 +746,14 @@ function buildMemoryText() {
 
     lines.push('<relationship_memory>');
 
-    // Two lines carry what the old eight-line anti-roster preamble carried.
-    // The list still contains absent characters (that is its purpose), so the
-    // "memory, not a roster" distinction must stay explicit.
-    lines.push('Hidden long-term memory of ALL known characters, including ones who are not in the scene. Reference only.');
-    lines.push('In the visible info blocks (<relationship>, char_mood, char_thoughts, char_outfit, etc.) include ONLY characters who are physically present in the current scene.');
+    // Saved memory is not a cast list. The visible cast belongs to the
+    // current reply, including parallel scenes and characters who leave.
+    lines.push('Hidden long-term relationship memory of ALL known characters. This list is not the cast of the current reply and does not determine who appears in visible info blocks.');
+    lines.push('For visible character info blocks (<relationship>, appearance, char_mood, char_thoughts, char_outfit, etc.), determine the cast from the narrative of the current reply: include every non-user character directly shown acting, speaking, or thinking in any ongoing scene represented in that reply.');
+    lines.push('Count participants across ALL parallel scenes, including scenes away from {{user}}. A character shown earlier in the reply still counts if they leave before its end; neither proximity to {{user}} nor presence at the final instant is required.');
+    lines.push('A name mentioned only in dialogue, recollection, plans, speculation, or saved memory does not by itself count as participation. Do not add the whole memory list to the visible blocks.');
+    lines.push('Use the same cast consistently across the applicable character fields, within the existing template. Do not invent unknown outfits, thoughts, or other details to fill a field.');
+    lines.push('Use the template\'s no-characters fallback only if that cast is empty. Determine participation again for each reply; do not copy an old empty fallback or an old cast as the new cast.');
 
     // Percentage mechanics — the reason this block exists at all.
     lines.push('Saved percentages are the source of truth for returning characters: keep them as the baseline and do not reset anyone to 0 unless the story clearly justifies it.');

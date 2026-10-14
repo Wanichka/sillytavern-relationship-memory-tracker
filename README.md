@@ -45,6 +45,22 @@ Buttons:
 
 The extension automatically updates saved memory from new model replies and injects saved relationship data before generation.
 
+## Visible characters in info blocks (v2.5.1)
+
+The injected instructions determine participation from **all ongoing scenes shown in the current reply**, including parallel scenes away from `{{user}}`. A character directly shown acting, speaking, or thinking counts even if they leave before the reply ends. A name mentioned only in dialogue, recollection, plans, speculation, or saved memory does not count by itself.
+
+Use the same cast across the applicable character fields. The no-characters fallback applies only when no non-user character directly participates anywhere in the reply. Saved memory is not a cast list; participation, absence, and return do not reset relationship percentages. Each relationship entry still describes the character's relationship with `{{user}}`, even when `{{user}}` is elsewhere.
+
+For a custom infoblock prompt, optional matching replacements are provided:
+- [Infoblock rules](prompts/infoblock_rules.txt)
+- [Relationship template](prompts/relationship_template.txt)
+
+Replace the corresponding fragments in your own prompt if they still use the old presence rule. These files are reference templates and are not loaded automatically by the extension.
+
+For example, when Law and Rosinante act and speak in a parallel scene away from Alice, both belong in that reply's character info blocks. Alice's name being mentioned does not alone make her a participant.
+
+Update the extension in SillyTavern, reload the page, and regenerate the affected reply. Existing saved relationship memory does not need to be cleared. This changes model instructions; it does not programmatically detect narrative participants.
+
 ## Expected relationship format
 
 ```text
