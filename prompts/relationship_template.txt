@@ -1,18 +1,10 @@
 <relationship>
-Relationship with {{user}} = Name1:
+Relationship with {{user}} = Name:
 Trust/Friendship: [X%] - [Custom Status] (Comment)
 Love/Affection: [X%] - [Custom Status] (Comment)
 Desire/Attraction: [X%] - [Custom Status] (Comment)
 Hostility/Conflict: [X%] - [Custom Status] (Comment)
 Jealousy: [X%] - [Custom Status] (Comment)
-Current Dynamic: [One sentence: what the relationship currently is and what is unresolved in it. Not where it is heading.]
-; Name2:
-Trust/Friendship: [X%] - [Custom Status] (Comment)
-Love/Affection: [X%] - [Custom Status] (Comment)
-Desire/Attraction: [X%] - [Custom Status] (Comment)
-Hostility/Conflict: [X%] - [Custom Status] (Comment)
-Jealousy: [X%] - [Custom Status] (Comment)
-Current Dynamic: [One sentence: what the relationship currently is and what is unresolved in it. Not where it is heading.]
-(Repeat character entries inside this single <relationship> field for EVERY non-user character directly shown acting, speaking, or thinking in any ongoing scene represented in this reply. Name1 and Name2 are format examples, not a two-character limit. Include all parallel scenes, including scenes away from {{user}}, and characters who leave after participating. A mention, recollection, plan, speculation, or saved memory alone does not count. If at least one character directly participates, do not use the no-characters fallback. Use established percentages for returning characters; participation alone never resets or changes them.
-Strictly follow the <relationship_progression> module. Each axis is independent. X is the current percentage. [Custom Status] is a context-appropriate 2-3 word label describing the state and strength of that specific axis, not a promised action, permission, or change of temperament. Desire/Attraction describes lasting attraction, not current arousal or an obligation to pursue intimacy. Comment is one sentence in that character's own framing, which may be biased, unfair, or wrong; it is not the narrator's assessment or a script for the next action. For Love/Affection, identify the attachment as romantic, familial, platonic, comradely, or uncertain in the status or comment. A relationship entry describes that character's relationship with {{user}} even if {{user}} is absent from the character's scene; do not substitute the relationship between the other scene participants.)
+Current Dynamic: [Current relationship and unresolved issues.]
+(Apply <relationship_progression>. Repeat these fields for every non-user character shown acting, speaking, or thinking anywhere in the reply, including parallel scenes and characters who leave. Start each additional entry on a new line with "; Name:". Mentions or saved memory alone do not count. Use the no-characters fallback only when nobody qualifies. Every entry concerns that character's relationship with {{user}}, even if {{user}} is elsewhere.)
 </relationship>
