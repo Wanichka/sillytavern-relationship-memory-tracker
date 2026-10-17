@@ -8,6 +8,7 @@ function boot() {
     const meta = {};
     const local = new Map();
     const context = { chatMetadata: meta, chatId: 'chat-a', saveMetadata() {} };
+    const injections = [];
     const sandbox = {
         console, URL, Date, setTimeout() {}, setInterval() {}, clearInterval() {},
         window: { SillyTavern: { getContext: () => context } },
@@ -20,8 +21,8 @@ function boot() {
             setItem: (key, value) => local.set(key, value),
             removeItem: key => local.delete(key),
         },
-        setExtensionPrompt() {},
-        extension_prompt_types: { IN_PROMPT: 0 }, extension_prompt_roles: { SYSTEM: 0 },
+        setExtensionPrompt(...args) { injections.push(args); },
+        extension_prompt_types: { IN_CHAT: 1 }, extension_prompt_roles: { SYSTEM: 0 },
         confirm: () => true,
     };
     const source = fs.readFileSync(path.join(__dirname, '../index.js'), 'utf8')
@@ -29,7 +30,7 @@ function boot() {
         .replace('setTimeout(init, 1000);', '');
     vm.createContext(sandbox);
     vm.runInContext(source, sandbox);
-    return { api: sandbox, context, meta, local };
+    return { api: sandbox, context, meta, local, injections };
 }
 
 function person(name, trust = '50%') {
@@ -74,4 +75,66 @@ test('names are per chat and competing aliases cannot steal an assigned characte
     context.chatMetadata = {};
     api.saveMemory({ Klion: person('Klion') });
     assert.equal(api.memoryOwner(api.getMemory(), 'Ло'), 'Ло');
+});
+
+test('high attraction survives the new guidance and stale behavioral notes stay out of the generated prompt', () => {
+    const { api, injections } = boot();
+    api.saveMemory({ Law: {
+        ...person('Law', '90%'), desire: '94%', desireStatus: 'OLD_STATUS_SENTINEL',
+        desireComment: 'OLD_COMMENT_SENTINEL', dynamic: 'OLD_SCENE_SENTINEL',
+    } });
+    const before = JSON.stringify(api.getMemory());
+    api.updatePromptInjection();
+    const prompt = injections.at(-1)[1];
+    assert.equal(prompt, api.buildMemoryText());
+    assert.match(prompt, /^Desire\/Attraction: 94%$/m);
+    assert.doesNotMatch(prompt, /OLD_(?:STATUS|COMMENT|SCENE)_SENTINEL|Status: present/);
+    assert.match(prompt, /not current arousal/);
+    assert.match(prompt, /independent flirtation and initiative remain possible/);
+    assert.match(prompt, /Decreases have no -1 cap/);
+    assert.equal(JSON.stringify(api.getMemory()), before);
+});
+
+test('a substantial measured loss is saved while axes omitted from that reply retain their values', () => {
+    const { api, context, local } = boot();
+    api.saveMemory({ Law: { ...person('Law', '90%'), love: '75%', desire: '94%', jealousy: '80%' } });
+    const block = '<relationship>\nRelationship with Alice = Law:\nTrust/Friendship: [30%] - [Betrayed]\nJealousy: [5%] - [Cause resolved]\nCurrent Dynamic: Established events changed these axes.\n</relationship>';
+    assert.equal(api.updateMemoryFromText(block), true);
+    const saved = context.chatMetadata.rm_tracker_memory.Law;
+    assert.equal(saved.trust, '30%');
+    assert.equal(saved.jealousy, '5%');
+    assert.equal(saved.love, '75%');
+    assert.equal(saved.desire, '94%');
+    assert.equal(JSON.parse(local.get('rm_tracker_memory_v1::chat-a')).Law.trust, '30%');
+    assert.match(api.buildMemoryText(), /^Desire\/Attraction: 94%$/m);
+});
+
+test('migration placeholders and unmeasured axes stay omitted while measured zeroes remain real values', () => {
+    const { api } = boot();
+    api.saveMemory({
+        Legacy: { name: 'Legacy', trust: '60%', romance: '70%', romanceStatus: 'Close' },
+        New: { ...person('New'), desire: '0%', hostility: '0%' },
+    });
+    const prompt = api.buildMemoryText();
+    const legacyBlock = prompt.split('\nLegacy:\n')[1].split('\nNew:\n')[0];
+    const newBlock = prompt.split('\nNew:\n')[1];
+    assert.match(legacyBlock, /^Love\/Affection: 70%$/m);
+    assert.doesNotMatch(legacyBlock, /Desire\/Attraction:|Hostility\/Conflict:|Jealousy:/);
+    assert.match(newBlock, /^Desire\/Attraction: 0%$/m);
+    assert.match(newBlock, /^Hostility\/Conflict: 0%$/m);
+    assert.equal(api.getMemory().Legacy.desireStatus, 'Not yet assessed');
+});
+
+test('legacy axis labels still update the current Love and Jealousy fields', () => {
+    const { api } = boot();
+    api.saveMemory({ Law: { ...person('Law'), desire: '94%' } });
+    const block = 'Relationship with Alice = Law:\nTrust/Friendship: [51%] - [Reliable]\nRomance/Attraction: [40%] - [Attached]\nJealousy/Possessiveness: [12%] - [Uneasy]\nCurrent Dynamic: Legacy labels.';
+    assert.equal(api.updateMemoryFromText(block), true);
+    assert.equal(api.getMemory().Law.love, '40%');
+    assert.equal(api.getMemory().Law.jealousy, '12%');
+    assert.equal(api.getMemory().Law.desire, '94%');
+    const prompt = api.buildMemoryText();
+    assert.match(prompt, /^Love\/Affection: 40%$/m);
+    assert.match(prompt, /^Jealousy: 12%$/m);
+    assert.doesNotMatch(prompt, /Romance\/Attraction:|Jealousy\/Possessiveness:/);
 });

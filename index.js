@@ -1,4 +1,8 @@
-// Relationship Memory Tracker v2.5.1
+// Relationship Memory Tracker v2.6.0
+// v2.6.0: lasting attraction is independent of current arousal and initiative.
+//   Prompt guidance: earned growth is +1 point per reply; justified decreases
+//   are proportional to events, without a -1 cap. No saved values are changed
+//   by the update and no numeric progression rules are enforced in code.
 // v2.5.1: visible info blocks cover participants across the current reply,
 //   including parallel scenes away from the user and characters who leave.
 // Drag name tiles in settings to order cards, and map alternate names to one memory.
@@ -756,10 +760,12 @@ function buildMemoryText() {
     lines.push('Use the template\'s no-characters fallback only if that cast is empty. Determine participation again for each reply; do not copy an old empty fallback or an old cast as the new cast.');
 
     // Percentage mechanics — the reason this block exists at all.
-    lines.push('Saved percentages are the source of truth for returning characters: keep them as the baseline and do not reset anyone to 0 unless the story clearly justifies it.');
-    lines.push('Love/Affection and Desire/Attraction are INDEPENDENT axes: Love is emotional attachment (being in love, tenderness, longing for this person); Desire is physical pull (attraction, tension, wanting). One can be high while the other is low.');
-    lines.push('A 0% Love/Affection value means no active romantic progress yet, not a permanent ban, unless lore says romance is impossible.');
-    lines.push('An omitted axis has no measured value: evaluate it when the character next appears; do not assume zero.');
+    lines.push('Saved percentages are the established baseline for returning characters, not frozen values or behavioral commands. Preserve them unless events justify changes under <relationship_progression>; absence, return, or updated rule wording alone never resets or recalculates them.');
+    lines.push('All five axes are INDEPENDENT. Love/Affection is emotional attachment, which may be romantic, familial, platonic, comradely, or uncertain. Desire/Attraction is relatively stable attraction to this specific person as a potential or existing intimate partner; it is not current arousal, an urgent need for sex, consent, or readiness to act. One axis can be high while another is low.');
+    lines.push('High Desire may remain in the background while the character pursues other priorities. It does not require sexual thoughts, touch, repeated advances, or a minimum <char_arousal> value. Character-appropriate, situationally fitting independent flirtation and initiative remain possible. Current arousal is tracked separately; sexual satisfaction or reduced arousal does not by itself lower lasting attraction.');
+    lines.push('Apply <relationship_progression>: each measured axis increases by exactly +1 percentage point per reply only when newly earned; otherwise it stays unchanged unless a decrease is justified. Decreases have no -1 cap and must be proportional to how the event actually weakens that specific axis. Ordinary friction does not justify large drops. Hostility and Jealousy may fall substantially when their actual causes are reduced or resolved.');
+    lines.push('A 0% Love/Affection value means no established emotional attachment on that axis, not a permanent ban on future attachment or proof that the relationship is romantic. High Love does not require dependence or fear of loss; high Trust does not require exclusive trust. Percentages never schedule a confession, intimacy, or another milestone.');
+    lines.push('An omitted axis has no measured value: assess it from established lore and relationship history when the character participates again; do not assume zero or treat its first assessment as +1 growth.');
     lines.push('');
 
     for (const name of names) {

@@ -8,7 +8,7 @@ A small SillyTavern extension that tracks relationship stats from `<relationship
 - Tracks five independent axes:
   - Trust/Friendship
   - Love/Affection (emotional attachment)
-  - Desire/Attraction (physical pull)
+  - Desire/Attraction (lasting attraction, separate from current arousal)
   - Hostility/Conflict
   - Jealousy
 - Keeps offscreen characters saved instead of deleting them
@@ -45,6 +45,38 @@ Buttons:
 
 The extension automatically updates saved memory from new model replies and injects saved relationship data before generation.
 
+## Relationship progression and attraction (v2.6.0)
+
+Desire/Attraction now means **relatively stable attraction to a specific person**, not current arousal or an urgent need for sex. A character can have 94% Desire, zero current arousal, and spend a scene focused on work or rest. High attraction may stay in the background. Independent flirting and initiative remain possible when they fit the character and situation; repeated advances, sexual thoughts, touch, or a minimum arousal level are not required. Sexual satisfaction and declining arousal do not by themselves lower lasting attraction.
+
+The matching progression module provides these rules:
+
+- Each measured axis grows by **+1 percentage point per reply only when newly earned**; otherwise it stays unchanged unless a decrease is justified. Multiple qualifying moments do not stack increases on one axis in one reply.
+- **Decreases have no -1 cap.** Their magnitude follows the event's actual effect on that particular relationship axis. Ordinary friction and passing moods do not justify large drops. A serious rupture may justify a substantial loss; rebuilding still follows the +1 rule.
+- Hostility and Jealousy may decrease substantially when their real causes weaken or resolve, but a pleasant moment does not erase an unresolved cause.
+- Repeated expressions of existing attraction do not automatically increase Desire. Routine care does not automatically increase Love, but an ordinary act can qualify if new significance genuinely deepens attachment.
+- Trust does not require exclusive vulnerability or blind agreement. Love may be romantic, familial, platonic, comradely, or uncertain; high attachment does not require dependence, fear of loss, or organizing one's entire life around the user.
+- Fear, disagreement, irritation, or being overruled increases Hostility only when it actually strengthens directed conflict. Zero Hostility or Jealousy may mean no such feeling; high values do not prescribe obsession, control, or aggression.
+- Stages and custom statuses describe each axis's state and strength, not promised actions, access, consent, or temperament. Confession is available at 70%+ romantic Love, but no number or elapsed-scene timer makes it mandatory. Characters may create a fitting opportunity themselves. Existing proposal and player-choice boundaries remain.
+- Unmeasured axes are initially assessed from established lore and relationship history, not from an automatic zero or +1. Corrections to measured values require established evidence: upward at most +1 per relevant reply, downward by a justified amount. Updated wording alone never recalculates memory.
+
+### Install the matching prompts
+
+1. Update the extension in SillyTavern and reload the page.
+2. Replace your old `<relationship_progression>...</relationship_progression>` module with [Relationship progression](prompts/relationship_progression.txt). Remove the old copy so conflicting rules are not left active.
+3. Replace only the `<relationship>...</relationship>` field inside your multi-character stats template with [Relationship template](prompts/relationship_template.txt). Keep the other stats fields, including `<char_arousal>`, as they are.
+4. If your preset has a relationship checklist item, make it refer to the new module: evaluate axes independently, allow +1 earned growth or proportionate decreases, distinguish lasting attraction from current arousal, and do not schedule character actions from percentages.
+
+These prompt files are **reference templates; the extension does not load them automatically**. The extension injects short interpretation reminders, while the full module supplies the detailed rules. Current arousal continues under the preset's existing rules and is not added to persistent relationship memory.
+
+### Compatibility and verification
+
+Saved percentages, including existing high Desire values, are preserved. No clearing, numeric migration, or re-parsing is required. Legacy axis names, alternate character names, card ordering, chat metadata/localStorage storage, and participation across parallel scenes are unchanged. Only names and measured percentages enter the memory prompt; statuses, comments, scene dynamics, and presence flags stay out of it.
+
+Progression is **model guidance, not a numeric clamp in the parser**: the extension continues to save measured values from replies. The updated module and reminders do not programmatically evaluate narrative events, consent, or arousal.
+
+Run the regression checks with `node --test tests/memory-controls.test.cjs`. They cover storage and aliases, preserved high attraction, percentage-only injection, unmeasured axes, substantial losses with omitted axes retained, and legacy labels. Try the prompts with your model in ordinary high-attraction scenes, fitting independent flirtation, post-intimacy recovery, serious loss of trust, and resolution of jealousy. Code checks cannot establish how a particular model will roleplay those scenes.
+
 ## Visible characters in info blocks (v2.5.1)
 
 The injected instructions determine participation from **all ongoing scenes shown in the current reply**, including parallel scenes away from `{{user}}`. A character directly shown acting, speaking, or thinking counts even if they leave before the reply ends. A name mentioned only in dialogue, recollection, plans, speculation, or saved memory does not count by itself.
@@ -71,7 +103,7 @@ Love/Affection: [10%] - [Internal Feeling sentence]
 Desire/Attraction: [5%] - [Internal Feeling sentence]
 Hostility/Conflict: [0%] - [Internal Feeling sentence]
 Jealousy: [0%] - [Internal Feeling sentence]
-Current Dynamic: One sentence about the overall emotional tension and direction.
+Current Dynamic: One sentence about the current relationship and its unresolved issues, not its future direction.
 ; Second Character:
 Trust/Friendship: [80%] - [Internal Feeling sentence]
 ...
