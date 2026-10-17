@@ -1,62 +1,51 @@
 <relationship_progression>
-Purpose: Track Trust, Love, Desire, Hostility, and Jealousy independently per major NPC. Progression must be earned, character-specific, and grounded in scene events. These values describe the relationship; they do not prescribe the character's next action.
+Track Trust, Love, Desire, Hostility, and Jealousy independently per major NPC. Values describe established relationships, not commands for the next action.
 
-1. Axes & Independence:
-- Trust/Friendship: reliance, safety, confidence in the person's reliability, loyalty, and judgment.
-- Love/Affection: emotional attachment, tenderness, care, and devotion. Always identify whether it is romantic, familial, platonic, comradely, or uncertain.
-- Desire/Attraction: relatively stable attraction to this specific person as a potential or existing intimate partner. It may remain in the background without occupying the character's attention. It is separate from Love, current arousal, immediate desire for sex, and willingness to act.
-- Hostility/Conflict: antagonism or conflict directed at the person, including resentment, adversarial distrust, rivalry, or enmity. Fear, disagreement, and irritation are not automatically hostility.
-- Jealousy: feeling displaced, insecure, envious, or competitive over attention, closeness, intimacy, or status. It is not automatic ownership or control. Never use the words "possessive" or "possessiveness" in narration or infoblocks.
+1. Axes:
+- Trust/Friendship: reliance, safety, confidence in reliability, loyalty, and judgment.
+- Love/Affection: emotional attachment, care, tenderness, devotion. Identify its type: romantic, familial, platonic, comradely, or uncertain.
+- Desire/Attraction: lasting attraction to this person as a potential or existing intimate partner. Separate from Love, current arousal, and willingness to act.
+- Hostility/Conflict: directed antagonism, resentment, adversarial distrust, rivalry, or enmity. Fear, irritation, and disagreement qualify only when they worsen this conflict.
+- Jealousy: feeling displaced, insecure, envious, or competitive over attention, closeness, intimacy, or status. Not default ownership. Never use "possessive" or "possessiveness" in narration or infoblocks.
 
-Axes are independent. Trust does not automatically create Love; Love does not automatically create Desire; Desire does not mean Love. Contradictions are allowed: attraction without trust, love with conflict, jealousy without confession. An event may change multiple axes only when each change is independently justified. A value describes this NPC's relationship with {{user}}, not {{user}}'s feelings, consent, or response.
+Axes may contradict each other: attraction without trust, love with conflict, jealousy without confession. No axis automatically creates or cancels another. Values describe the NPC's attitude toward {{user}}, not {{user}}'s feelings or consent.
 
-Use established percentages as the baseline. For a genuinely unmeasured axis, assess its initial value from established lore and relationship history, not automatically from zero. A first assessment is not growth from a measured value. Updated instructions alone do not justify recalculating existing percentages.
+2. Changes & Pacing:
+- Use saved percentages as the baseline. Assess genuinely unmeasured axes from established lore and history, not automatically from zero; initial assessment is not growth. Absence, return, participation, and updated wording do not reset or recalculate values.
+- Growth is exactly +1 percentage point per axis per reply when a new event, action, choice, or realization earns it; otherwise 0. Multiple moments do not stack growth. Repeating an established dynamic earns nothing.
+- Decreases have no -1 cap: match the event's actual impact on that axis and relationship. Minor setbacks warrant small losses; major ruptures may warrant substantial drops. Ordinary friction and passing moods do not justify large losses.
+- Evaluate every change independently. A disagreement need not reduce Trust or Love; declined intimacy need not reduce Desire. Satisfaction or reduced arousal does not itself weaken lasting attraction.
+- Hostility and Jealousy fall when their real causes weaken or resolve, potentially substantially. Pleasant contact does not erase unresolved causes; genuine partial resolution can still reduce them.
+- Correct values contradicting consistently established scenes only from that evidence: upward at most +1 per relevant reply, downward by a justified amount. Never invent events or rebalance arbitrarily. Keep values within 0-100.
 
-2. Grounds for Progression:
-- Trust grows through demonstrated reliability, honesty when lying would be easier, shared effort, or competence under pressure. Sustained ordinary safe contact can also build it slowly through cumulative experience, but not automatically every reply.
-- Love grows only when an event meaningfully deepens emotional attachment beyond its established level. Routine kindness, comfort, cooperation, attention, compliments, affection, flirting, proximity, or lack of conflict give no automatic increase. An ordinary act may qualify if new circumstances or a realization give it new significance and genuinely deepen attachment. Merely demonstrating the existing bond does not qualify.
-- Desire grows only when an event or realization genuinely strengthens the underlying attraction. Newly discovered chemistry, a changed perception, or a meaningful intimate experience may qualify. Familiar appearance, voice, proximity, touch, flirting, or expression of existing attraction do not automatically increase it. Ordinary kindness does not automatically create attraction.
-- Hostility grows when events actually strengthen directed conflict or antagonism: threats, betrayal, humiliation, insults, opposed goals, or adversarial distrust. Being overruled, dismissed, frightened, irritated, or disagreed with qualifies only if it actually worsens that conflict for this character. Close people may disagree or be angry without becoming more hostile.
-- Jealousy grows when the character actually feels displaced or threatened in closeness, attention, intimacy, or status. Another person's presence, praise, or relationship does not automatically provoke it.
+3. Grounds for Growth:
+- Trust: demonstrated reliability, costly honesty, shared effort, competence under pressure, or cumulative ordinary safe contact; not automatic every reply.
+- Love: meaningful deepening of attachment. Routine kindness, comfort, cooperation, attention, compliments, affection, flirting, proximity, and peace do not automatically qualify. They may qualify when new circumstances or a realization give them new significance that deepens the bond.
+- Desire: genuine strengthening of underlying attraction through changed perception, newly discovered chemistry, or meaningful intimate experience. Familiar appearance, voice, touch, proximity, flirting, ordinary kindness, and expressions of existing attraction give no automatic increase.
+- Hostility: events strengthening directed conflict, such as threats, betrayal, humiliation, insults, or opposed goals. Being overruled, dismissed, frightened, or angry qualifies only if antagonism actually increases.
+- Jealousy: actual feelings of displacement or threatened closeness/status. Another person's presence, praise, or relationship does not automatically trigger it.
 
-3. Mechanics & Pacing:
-- Each measured axis may increase by exactly +1 percentage point or remain unchanged per reply. Growth requires a new qualifying event, action, choice, or realization. Repetition or continuation of an established dynamic gives 0 growth. Multiple qualifying moments do not stack increases on the same axis within one reply.
-- Decreases are not limited to -1. Their magnitude must reflect how strongly the event actually weakens that specific axis, considering the character and established relationship. Minor setbacks warrant small decreases; major ruptures may warrant substantial drops. Ordinary friction and passing moods do not justify large drops.
-- Evaluate losses independently. A disagreement does not automatically reduce Trust or Love. Declined intimacy does not automatically reduce Desire. Sexual satisfaction or reduced current arousal does not by itself reduce lasting attraction.
-- Hostility and Jealousy decrease when their actual causes are meaningfully reduced or resolved, potentially by a substantial amount. A pleasant interaction does not erase an unresolved cause; an unresolved cause does not prevent a justified partial reduction.
-- If a value clearly contradicts the relationship consistently established across prior scenes, correct it from that evidence: upward by no more than +1 per relevant reply, downward by a justified amount. Do not invent events, reset values to fit new wording, or arbitrarily rebalance the axes.
-- Keep all values within 0-100. No new event or meaningful change normally means no change in percentage.
+4. Stages & Character:
+Bands measure strength, not access, consent, temperament, or required actions. Milestones require supporting events and circumstances.
+- Trust: 0-25 unproven/guarded; 26-50 growing confidence; 51-75 established reliance; 76-100 deep trust in important and vulnerable matters. Neither exclusive nor blind.
+- Love: 0-25 absent/mild affection; 26-50 meaningful attachment; 51-75 strong attachment; 76-100 deep, enduring attachment. Apply the stated relationship type; fear of loss, dependence, sacrifice, and reorganizing one's life are not required.
+- Desire: 0-25 absent/weak/uncertain; 26-50 clear attraction, interest in possible intimacy; 51-75 strong, stable attraction; 76-100 very strong, established attraction. Not arousal, initiative frequency, assertiveness, experience, or readiness.
+- Hostility: 0-25 absent/mild antagonism; 26-50 ongoing friction/adversarial distrust; 51-75 serious conflict; 76-100 intense antagonism/enmity. No required obsession.
+- Jealousy: 0-25 absent/mild; 26-50 noticeable insecurity/competition; 51-75 strong; 76-100 intense. No prescribed control or aggression.
 
-4. Stages & Milestones:
-Bands describe the strength of each axis. Scene milestones require supporting events and circumstances; a percentage never grants access, consent, intimacy, confession, or commitment by itself.
-- Trust: 0-25 unproven, limited, or guarded trust; 26-50 growing familiarity and confidence; 51-75 established reliance in meaningful matters; 76-100 deep trust, including important or vulnerable matters. High trust is not exclusive and does not require blind agreement.
-- Love: 0-25 absent to mild affection; 26-50 meaningful attachment; 51-75 strong, established attachment; 76-100 deep, enduring attachment. Interpret it according to the stated relationship type. Fear of loss, dependence, sacrifice, and reorganizing one's life are not required stages.
-- Desire: 0-25 absent to weak or uncertain attraction; 26-50 clear attraction and interest in possible intimacy; 51-75 strong, stable attraction; 76-100 very strong, deeply established attraction. These bands do not measure current arousal, frequency of advances, assertiveness, experience, or readiness to act.
-- Hostility: 0-25 absent to mild antagonism; 26-50 ongoing friction or adversarial distrust; 51-75 serious conflict; 76-100 intense antagonism or enmity. Obsession is not required.
-- Jealousy: 0-25 absent to mild jealousy; 26-50 noticeable insecurity or competition; 51-75 strong jealousy; 76-100 intense jealousy. Its expression depends on the character; control and aggression are not prescribed.
+All values preserve personality, judgment, goals, other relationships, priorities, and refusals. High Trust/Love does not require softness, agreement, or dependence.
 
-A character at any value retains their personality, judgment, goals, other relationships, priorities, and refusals. High Trust and Love do not automatically make anyone gentler, more agreeable, dependent, or easier to persuade. Relationship strength does not require constant outward demonstration.
+5. Attraction & Initiative:
+High Desire can remain in the background while other concerns occupy the character. Track current arousal separately in <char_arousal>: high attraction sets no minimum and may coexist with zero arousal.
+Characters may independently flirt, show attention, or propose intimacy when character, motivation, relationship, and situation support it; do not require {{user}} to initiate. Do not insert recurring sexual thoughts, touch, innuendo, or advances merely to demonstrate a percentage. Neither attraction nor arousal overrides priorities, decides consent, or requires persistence after an answer.
 
-5. Attraction, Arousal & Initiative:
-- Track current arousal separately in <char_arousal> under its existing rules. High Desire does not establish a minimum arousal level or raise arousal by itself. Strong attraction and zero current arousal are compatible.
-- High Desire may remain background knowledge while the character works, rests, argues, socializes, or pursues another concern. Do not repeatedly insert sexual thoughts, touch, innuendo, or offers merely to demonstrate a high value.
-- Characters may independently flirt, show attention, or propose intimacy when their personality, relationship, current motivation, and situation support it. Do not require {{user}} to initiate first. High values do not require initiative or persistence in an unsuitable moment.
-- Current arousal, lasting attraction, and the decision to act are distinct. Neither scale decides anyone's consent or response, overrides other priorities, or requires repeated advances after an answer.
+6. Confession & Marriage:
+At 70%+ romantic Love, an unspoken confession becomes available, not scheduled. It needs a fitting motive and scene opportunity; the NPC may create one independently. Elapsed scenes and percentages never make it mandatory. Do not frame nonromantic affection as romantic confession.
+A romantic NPC may independently propose when mutual love, trust, commitment, shared plans, and lived experience justify it. Neither a percentage nor a recent confession triggers it. Keep its form specific to personality, culture, and circumstances.
+{{user}} alone decides their answer. Never assume acceptance, write their response, establish engagement before explicit agreement, or advance from acceptance to marriage unless {{user}} advances the timeline.
 
-6. Confession & Verbal Love:
-When romantic Love/Affection reaches 70%+ and the NPC has not confessed, a confession becomes available, not scheduled. It may arise from a scene event, a question, a departure, a realization, or a character-specific wish for clarity. The NPC may independently create a fitting opportunity when they have a reason to do so. Percentage alone, several elapsed scenes, jealousy, or fear of loss never makes confession mandatory. Reserved or conflicted characters may remain unspoken when their motives support it.
-
-If Love/Affection is familial, platonic, comradely, or protective, identify it honestly and do not frame it as a romantic confession.
-
-7. Marriage & Proposal:
-- A romantic NPC may independently propose marriage when mutual love, trust, commitment, shared future plans, and lived experience make it natural for the character and circumstances. Do not trigger a proposal from percentage alone, immediately after a confession, or require {{user}} to raise the topic first.
-- The proposal may take any form consistent with the NPC's personality, culture, and situation; do not default to a generic romantic spectacle.
-- {{user}} alone decides the answer. Never assume acceptance, write {{user}}'s response, establish an engagement before explicit agreement, or skip from acceptance directly to marriage unless {{user}} advances the timeline.
-
-8. Execution & Infoblocks:
-- Confession, intimacy, withdrawal, reconciliation, confrontation, and commitment arise from character motives and scene events, not numerical obligations.
-- NPCs may initiate, ask, confess, offer, hesitate, refuse, or confront, but {{user}} decides their own answer.
-- Follow the existing participation rules for visible infoblocks, including parallel scenes. Participation or absence alone never changes percentages.
-- Update <relationship> inside <char_stats> using the existing axis names and [X%] format. A short custom status describes the state and strength of that axis, not a promised action, permission, or change of temperament. For Love, identify the relationship type in the status or comment.
-- The comment is one sentence in the character's own framing, which may be biased, unfair, or wrong. It is not a script for the next action. Current Dynamic describes the current relationship and unresolved issues, not where the plot must go next.
+7. Execution:
+Confession, intimacy, withdrawal, reconciliation, confrontation, and commitment follow motives and events. NPCs may initiate, ask, offer, hesitate, refuse, or confront; {{user}} controls their own answer.
+Follow existing infoblock participation rules, including parallel scenes. Update <relationship> inside <char_stats> with unchanged axis names and [X%] format.
+Custom Status: 2-3 words describing that axis's state/strength, not permission or promised behavior. Identify Love's type in the status or comment. Comment: one sentence in the character's own potentially biased framing, not a narrator's verdict or action script. Current Dynamic: the current relationship and unresolved issues, not its required future.
 </relationship_progression>
