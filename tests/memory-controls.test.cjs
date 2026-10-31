@@ -4,6 +4,50 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 
+test('display name editing persists through alias updates without changing prompt names and supports reset', () => {
+    const { api, context, local } = boot();
+    api.saveMemory({ 'Full Name': person('Full Name') });
+    api.setMemoryAliases('Full Name', ['Alias']);
+    const originalPrompt = api.buildMemoryText();
+    let edit;
+    const settings = {
+        style: { display: 'block' },
+        querySelector: () => ({ querySelectorAll: () => [] }),
+        querySelectorAll(selector) {
+            return selector === '.rm-tracker-name-edit'
+                ? [{ dataset: { rmIndex: '0' }, addEventListener(type, fn) { edit = fn; } }]
+                : [];
+        },
+    };
+    const body = { querySelectorAll: () => [] };
+    api.document.querySelector = selector => selector === '#rm-tracker-settings' ? settings : selector === '#rm-tracker-body' ? body : null;
+    api.renderSettings(settings);
+    api.prompt = () => '  Short <Name>  ';
+    edit();
+    assert.match(body.innerHTML, /class="rm-tracker-name">Short &lt;Name&gt;<\/div>/);
+    assert.equal(api.buildMemoryText(), originalPrompt);
+    api.updateMemoryFromText('Relationship with User = Alias:\nTrust/Friendship: [51%] - [Reliable]\nCurrent Dynamic: Updated.');
+    assert.deepEqual(Object.keys(api.getMemory()), ['Full Name']);
+    assert.equal(api.getMemory()['Full Name'].displayName, 'Short <Name>');
+    assert.equal(api.getMemory()['Full Name'].trust, '51%');
+    assert.equal(JSON.parse(local.get('rm_tracker_memory_v1::chat-a'))['Full Name'].displayName, 'Short <Name>');
+    const savedMeta = JSON.parse(JSON.stringify(context.chatMetadata));
+    context.chatId = 'chat-b';
+    context.chatMetadata = {};
+    assert.deepEqual(Object.keys(api.getMemory()), []);
+    context.chatId = 'chat-a';
+    context.chatMetadata = savedMeta;
+    assert.equal(api.getMemory()['Full Name'].displayName, 'Short <Name>');
+    api.prompt = () => null;
+    edit();
+    assert.equal(api.getMemory()['Full Name'].displayName, 'Short <Name>');
+    api.prompt = () => '  ';
+    edit();
+    assert.equal(api.getMemory()['Full Name'].displayName, undefined);
+    assert.match(body.innerHTML, /class="rm-tracker-name">Full Name<\/div>/);
+    assert.equal(api.memoryOwner(api.getMemory(), 'Alias'), 'Full Name');
+});
+
 function boot() {
     const meta = {};
     const local = new Map();
@@ -138,3 +182,4 @@ test('legacy axis labels still update the current Love and Jealousy fields', () 
     assert.match(prompt, /^Jealousy: 12%$/m);
     assert.doesNotMatch(prompt, /Romance\/Attraction:|Jealousy\/Possessiveness:/);
 });
+

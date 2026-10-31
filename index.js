@@ -1,4 +1,5 @@
-// Relationship Memory Tracker v2.6.0
+// Relationship Memory Tracker v2.6.1
+// Optional display names per chat; memory keys, aliases and prompt names stay intact.
 // v2.6.0: lasting attraction is independent of current arousal and initiative.
 //   Prompt guidance: earned growth is +1 point per reply; justified decreases
 //   are proportional to events, without a -1 cap. No saved values are changed
@@ -895,7 +896,7 @@ function renderPanel() {
         return `
             <div class="rm-tracker-card" data-rm-index="${index}">
                 <div class="rm-tracker-card-head">
-                    <div class="rm-tracker-name">${escapeHtml(name)}</div>
+                    <div class="rm-tracker-name">${escapeHtml(item.displayName || name)}</div>
                     <button class="rm-tracker-delete" type="button" data-rm-index="${index}" title="Delete this memory" aria-label="Delete this memory">×</button>
                 </div>
                 ${axisRow('Trust/Friendship', item.trust, item.trustStatus, item.trustComment)}
@@ -926,17 +927,32 @@ function renderSettings(container) {
     const memory = getMemory();
     const names = Object.keys(memory);
     container.innerHTML = `
-        <div class="rm-tracker-settings-intro">Drag the handles to change card order in this chat. Use Names to make different names update the same card. Existing separate cards stay until you delete them yourself.</div>
+        <div class="rm-tracker-settings-intro">Drag the handles to change card order in this chat. Use Names to make different names update the same card. Use ✎ to change the display name in this chat. Existing separate cards stay until you delete them yourself.</div>
         <div class="rm-tracker-order-list">
         ${names.length ? names.map((name, index) => `
             <div class="rm-tracker-alias-row" data-rm-index="${index}">
                 <span class="rm-tracker-order-grip" title="Drag to reorder" aria-label="Drag ${escapeHtml(name)} to reorder" role="button" tabindex="0">☰</span>
-                <span>${escapeHtml(name)}</span>
+                <span title="${escapeHtml(name)}">${escapeHtml(memory[name].displayName || name)}</span>
                 <button class="rm-tracker-alias-edit" type="button" data-rm-index="${index}">Names${memory[name].aliases?.length ? ` (${memory[name].aliases.length})` : ''}</button>
+                <button class="rm-tracker-name-edit" type="button" data-rm-index="${index}" title="Display name" aria-label="Change display name for ${escapeHtml(name)}">✎</button>
             </div>
         `).join('') : '<div class="rm-tracker-empty">No relationship memories yet.</div>'}
         </div>
     `;
+    container.querySelectorAll('.rm-tracker-name-edit').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const owner = names[Number(btn.dataset.rmIndex)];
+            const current = getMemory();
+            if (!Object.hasOwn(current, owner)) return;
+            const input = prompt(`Display name for ${owner} (leave empty to use the original name):`, current[owner].displayName || '');
+            if (input === null) return;
+            const label = input.trim();
+            if (label) current[owner].displayName = label;
+            else delete current[owner].displayName;
+            saveMemory(current);
+            renderPanel();
+        });
+    });
     container.querySelectorAll('.rm-tracker-alias-edit').forEach(btn => {
         btn.addEventListener('click', () => {
             const owner = names[Number(btn.dataset.rmIndex)];
@@ -1466,3 +1482,4 @@ function init() {
 }
 
 setTimeout(init, 1000);
+

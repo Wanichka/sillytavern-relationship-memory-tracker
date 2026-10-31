@@ -130,7 +130,7 @@
 .rm-tracker-alias-row span:not(.rm-tracker-order-grip) { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .rm-tracker-order-grip { cursor: grab; touch-action: none; user-select: none; padding: 4px; }
 .rm-tracker-dragging { border-color: var(--rm-accent); opacity: 0.75; }
-.rm-tracker-alias-edit {
+.rm-tracker-alias-edit, .rm-tracker-name-edit {
     flex: 0 0 auto;
     border: none;
     border-radius: 6px;
@@ -295,3 +295,4 @@
 #rpt-shell .rpt-collapsed #rm-tracker-panel[data-rpt-docked] #rm-tracker-body,
 #rpt-shell .rpt-collapsed #rm-tracker-panel[data-rpt-docked] #rm-tracker-settings,
 #rpt-shell .rpt-collapsed #rm-tracker-panel[data-rpt-docked] #rm-tracker-actions { display: none !important; }
+

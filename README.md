@@ -4,6 +4,8 @@ A small SillyTavern extension that tracks relationship stats from `<relationship
 
 ## Features
 
+- Use **✎** next to a character's **Names** button in settings to set a display name for this chat. Leave it empty to restore the original name. Matching, saved relationship values, and names in the injected memory remain unchanged.
+
 - Parses `<relationship>` / rendered relationship blocks from model replies
 - Tracks five independent axes:
   - Trust/Friendship
@@ -115,3 +117,4 @@ Notes on the format:
 - Each axis must stay on a single line
 - The text after the dash can be a short status, a full sentence, or `Status (comment)` — all three parse
 - Old-format `Romance/Attraction` lines are accepted and stored as Love/Affection
+
