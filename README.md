@@ -2,6 +2,8 @@
 
 A small SillyTavern extension that tracks relationship stats from `<relationship>` blocks, stores them persistently, and injects saved relationship memory back into the prompt.
 
+![Relationship Memory panel showing character cards with trust, affection, attraction, hostility, and jealousy scores](docs/screenshots/relationship-memory-tracker.png)
+
 ## Features
 
 - Use **✎** next to a character's **Names** button in settings to set a display name for this chat. Leave it empty to restore the original name. Matching, saved relationship values, and names in the injected memory remain unchanged.
