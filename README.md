@@ -55,23 +55,24 @@ Desire/Attraction now means **relatively stable attraction to a specific person*
 
 The matching progression module provides these rules:
 
-- Each measured axis grows by **+1 percentage point per reply only when newly earned**; otherwise it stays unchanged unless a decrease is justified. Multiple qualifying moments do not stack increases on one axis in one reply.
-- **Decreases have no -1 cap.** Their magnitude follows the event's actual effect on that particular relationship axis. Ordinary friction and passing moods do not justify large drops. A serious rupture may justify a substantial loss; rebuilding still follows the +1 rule.
+- Trust, Love, Desire, and Hostility gain **+1 percentage point per reply only when newly earned**. Multiple qualifying moments do not stack on those axes.
+- **Jealousy can gain more than one point** when the NPC's reaction warrants it. A brief unspoken pang can count. Time in the story can gradually reduce jealousy when the feeling fades and there are no new triggers.
+- **Decreases have no -1 cap.** Their magnitude follows the event's actual effect on that particular relationship axis. Ordinary friction and passing moods do not justify large drops. A serious rupture may justify a substantial loss. Rebuilding follows the growth rule for the affected axis.
 - Hostility and Jealousy may decrease substantially when their real causes weaken or resolve, but a pleasant moment does not erase an unresolved cause.
 - Repeated expressions of existing attraction do not automatically increase Desire. Routine care does not automatically increase Love, but an ordinary act can qualify if new significance genuinely deepens attachment.
 - Trust does not require exclusive vulnerability or blind agreement. Love may be romantic, familial, platonic, comradely, or uncertain; high attachment does not require dependence, fear of loss, or organizing one's entire life around the user.
 - Fear, disagreement, irritation, or being overruled increases Hostility only when it actually strengthens directed conflict. Zero Hostility or Jealousy may mean no such feeling; high values do not prescribe obsession, control, or aggression.
 - Stages and custom statuses describe each axis's state and strength, not promised actions, access, consent, or temperament. Confession is available at 70%+ romantic Love, but no number or elapsed-scene timer makes it mandatory. Characters may create a fitting opportunity themselves. Existing proposal and player-choice boundaries remain.
-- Unmeasured axes are initially assessed from established lore and relationship history, not from an automatic zero or +1. Corrections to measured values require established evidence: upward at most +1 per relevant reply, downward by a justified amount. Updated wording alone never recalculates memory.
+- Unmeasured axes are initially assessed from established lore and relationship history, not from an automatic zero or +1. Corrections to measured values require established evidence: upward under the growth rule for that axis, downward by a justified amount. Updated wording alone never recalculates memory.
 
 ### Install the matching prompts
 
 1. Update the extension in SillyTavern and reload the page.
 2. Replace your old `<relationship_progression>...</relationship_progression>` module with [Relationship progression](prompts/relationship_progression.txt). Remove the old copy so conflicting rules are not left active.
 3. Replace only the `<relationship>...</relationship>` field inside your multi-character stats template with [Relationship template](prompts/relationship_template.txt). Keep the other stats fields, including `<char_arousal>`, as they are.
-4. If your preset has a relationship checklist item, make it refer to the new module: evaluate axes independently, allow +1 earned growth or proportionate decreases, distinguish lasting attraction from current arousal, and do not schedule character actions from percentages.
+4. If your preset has a relationship checklist item, make it refer to the new module: evaluate axes independently, apply +1 earned growth to Trust, Love, Desire, and Hostility, and use the scene and elapsed in-story time for Jealousy, distinguish lasting attraction from current arousal, and do not schedule character actions from percentages.
 
-These prompt files are **reference templates; the extension does not load them automatically**. The extension injects short interpretation reminders, while the full module supplies the detailed rules. Current arousal continues under the preset's existing rules and is not added to persistent relationship memory.
+These prompt files are **reference templates; the extension does not load them automatically**. The extension follows the active progression module's rules. Without one, its reminder defaults to +1 for earned growth. Current arousal continues under the preset's existing rules and is not added to persistent relationship memory.
 
 ### Compatibility and verification
 

@@ -12,18 +12,19 @@ Axes may contradict each other: attraction without trust, love with conflict, je
 
 2. Changes & Pacing:
 - Use saved percentages as the baseline. Assess genuinely unmeasured axes from established lore and history, not automatically from zero; initial assessment is not growth. Absence, return, participation, and updated wording do not reset or recalculate values.
-- Growth is exactly +1 percentage point per axis per reply when a new event, action, choice, or realization earns it; otherwise 0. Multiple moments do not stack growth. Repeating an established dynamic earns nothing.
+- On Trust, Love, Desire, and Hostility, apply exactly +1 percentage point per reply when a new event, action, choice, or realization earns growth. Multiple moments do not stack. Repeating an established dynamic earns nothing.
+- Jealousy has no fixed +1 limit. A new pang of envy over attention or closeness the NPC wanted from {{user}} can count, even when brief, unspoken, and compatible with trust. Match any increase to the strength of the reaction shown in the story. A slight pang earns a small gain. A stronger reaction can earn more than one point. Another person's presence, praise, or relationship gives no automatic gain.
 - Decreases have no -1 cap: match the event's actual impact on that axis and relationship. Minor setbacks warrant small losses; major ruptures may warrant substantial drops. Ordinary friction and passing moods do not justify large losses.
 - Evaluate every change independently. A disagreement need not reduce Trust or Love; declined intimacy need not reduce Desire. Satisfaction or reduced arousal does not itself weaken lasting attraction.
-- Hostility and Jealousy fall when their real causes weaken or resolve, potentially substantially. Pleasant contact does not erase unresolved causes; genuine partial resolution can still reduce them.
-- Correct values contradicting consistently established scenes only from that evidence: upward at most +1 per relevant reply, downward by a justified amount. Never invent events or rebalance arbitrarily. Keep values within 0-100.
+- Lower Hostility when its cause weakens or resolves, including partial resolution. Pleasant contact alone does not erase unresolved causes.
+- Lower Jealousy when its cause weakens or resolves. If enough in-story time passes without new triggers and the earlier cause no longer sustains the feeling, gradually lower it toward 0%. A quiet reply or scene ending alone does not trigger a decrease.
+- Correct a saved score when established scenes clearly contradict it. Apply the same rules to upward corrections as to growth. Base downward corrections on established evidence. Never invent events or rebalance arbitrarily. Keep all scores within 0–100.
 
 3. Grounds for Growth:
 - Trust: demonstrated reliability, costly honesty, shared effort, competence under pressure, or cumulative ordinary safe contact; not automatic every reply.
 - Love: meaningful deepening of attachment. Routine kindness, comfort, cooperation, attention, compliments, affection, flirting, proximity, and peace do not automatically qualify. They may qualify when new circumstances or a realization give them new significance that deepens the bond.
 - Desire: genuine strengthening of underlying attraction through changed perception, newly discovered chemistry, or meaningful intimate experience. Familiar appearance, voice, touch, proximity, flirting, ordinary kindness, and expressions of existing attraction give no automatic increase.
 - Hostility: events strengthening directed conflict, such as threats, betrayal, humiliation, insults, or opposed goals. Being overruled, dismissed, frightened, or angry qualifies only if antagonism actually increases.
-- Jealousy: actual feelings of displacement or threatened closeness/status. Another person's presence, praise, or relationship does not automatically trigger it.
 
 4. Stages & Character:
 Bands measure strength, not access, consent, temperament, or required actions. Milestones require supporting events and circumstances.
@@ -46,6 +47,6 @@ A romantic NPC may independently propose when mutual love, trust, commitment, sh
 
 7. Execution:
 Confession, intimacy, withdrawal, reconciliation, confrontation, and commitment follow motives and events. NPCs may initiate, ask, offer, hesitate, refuse, or confront; {{user}} controls their own answer.
-Follow existing infoblock participation rules, including parallel scenes. Update <relationship> inside <char_stats> with unchanged axis names and [X%] format.
+Follow existing infoblock participation rules, including parallel scenes. Update <relationship> inside <char_stats> with unchanged axis names and [X%] format. Confirm each participating NPC's scores against the finished scene and relevant established events before filling the block.
 Custom Status: 2-3 words describing that axis's state/strength, not permission or promised behavior. Identify Love's type in the status or comment. Comment: one sentence in the character's own potentially biased framing, not a narrator's verdict or action script. Current Dynamic: the current relationship and unresolved issues, not its required future.
 </relationship_progression>
